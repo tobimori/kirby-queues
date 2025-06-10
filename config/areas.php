@@ -8,6 +8,69 @@ use tobimori\Queues\Queues;
  */
 return [
 	'queues' => function () {
+		$filterByTimeRange = function($jobs, $timeRange) {
+			if (!$timeRange || $timeRange === 'all') {
+				return $jobs;
+			}
+			
+			$now = time();
+			$cutoff = $now;
+			
+			switch ($timeRange) {
+				case '1h':
+					$cutoff = $now - 3600;
+					break;
+				case '24h':
+					$cutoff = $now - 86400;
+					break;
+				case '7d':
+					$cutoff = $now - 604800;
+					break;
+				case '30d':
+					$cutoff = $now - 2592000;
+					break;
+			}
+			
+			return array_filter($jobs, function($job) use ($cutoff) {
+				return ($job['created_at'] ?? 0) >= $cutoff;
+			});
+		};
+		
+		$getFilteredStats = function($timeRange) use ($filterByTimeRange) {
+			if (!$timeRange || $timeRange === 'all') {
+				return Queues::manager()->stats();
+			}
+			
+			$stats = [
+				'total' => 0,
+				'by_status' => [
+					'pending' => 0,
+					'running' => 0,
+					'completed' => 0,
+					'failed' => 0
+				],
+				'by_queue' => []
+			];
+			
+			foreach (['pending', 'running', 'completed', 'failed'] as $status) {
+				$jobs = Queues::manager()->getByStatus($status, 10000);
+				$filteredJobs = $filterByTimeRange($jobs, $timeRange);
+				$count = count($filteredJobs);
+				$stats['by_status'][$status] = $count;
+				$stats['total'] += $count;
+				
+				foreach ($filteredJobs as $job) {
+					$queue = $job['queue'] ?? 'default';
+					if (!isset($stats['by_queue'][$queue])) {
+						$stats['by_queue'][$queue] = 0;
+					}
+					$stats['by_queue'][$queue]++;
+				}
+			}
+			
+			return $stats;
+		};
+		
 		return [
 			'label' => t('queues.title'),
 			'icon' => 'layers',
@@ -16,9 +79,126 @@ return [
 			'views' => [
 				[
 					'pattern' => 'queues',
-					'action' => function () {
-						$stats = Queues::manager()->stats();
-						$jobs = Queues::manager()->getByStatus('pending', 50, 0);
+					'action' => function () use ($filterByTimeRange, $getFilteredStats) {
+						$timeRange = get('timeRange', '24h');
+						$page = (int) get('page', 1);
+						$sortBy = get('sortBy', 'created_at');
+						$sortOrder = get('sortOrder', 'desc');
+						$jobType = get('jobType', '');
+						$limit = 50;
+						$offset = ($page - 1) * $limit;
+						
+						// get all jobs from all statuses
+						$allJobs = [];
+						foreach (['pending', 'running', 'completed', 'failed'] as $status) {
+							$statusJobs = Queues::manager()->getByStatus($status, 10000);
+							foreach ($statusJobs as &$job) {
+								$job['status'] = $status;
+							}
+							$allJobs = array_merge($allJobs, $statusJobs);
+						}
+						
+						// filter by time range
+						$filteredJobs = $filterByTimeRange($allJobs, $timeRange);
+						
+						// filter by job type if specified
+						if ($jobType) {
+							$filteredJobs = array_filter($filteredJobs, function($job) use ($jobType) {
+								$jobName = $job['name'] ?? $job['type'];
+								return $jobName === $jobType;
+							});
+						}
+						
+						// sort jobs
+						usort($filteredJobs, function($a, $b) use ($sortBy, $sortOrder) {
+							$aVal = $a[$sortBy] ?? 0;
+							$bVal = $b[$sortBy] ?? 0;
+							
+							if ($sortOrder === 'asc') {
+								return $aVal <=> $bVal;
+							} else {
+								return $bVal <=> $aVal;
+							}
+						});
+						
+						// get unique job names for filter
+						$jobTypes = array_unique(array_map(function($job) {
+							return $job['name'] ?? $job['type'];
+						}, $allJobs));
+						sort($jobTypes);
+						
+						$total = count($filteredJobs);
+						$jobs = array_slice($filteredJobs, $offset, $limit);
+						$stats = $getFilteredStats($timeRange);
+
+						return [
+							'component' => 'k-queues-view',
+							'title' => t('queues.title'),
+							'breadcrumb' => [
+								[
+									'label' => t('queues.all'),
+									'link' => 'queues'
+								]
+							],
+							'props' => [
+								'statistics' => $stats,
+								'jobs' => $jobs,
+								'total' => $total,
+								'status' => 'all',
+								'page' => $page,
+								'timeRange' => $timeRange,
+								'sortBy' => $sortBy,
+								'sortOrder' => $sortOrder,
+								'jobType' => $jobType,
+								'jobTypes' => $jobTypes
+							]
+						];
+					}
+				],
+				[
+					'pattern' => 'queues/pending',
+					'action' => function () use ($filterByTimeRange, $getFilteredStats) {
+						$timeRange = get('timeRange', '24h');
+						$page = (int) get('page', 1);
+						$sortBy = get('sortBy', 'created_at');
+						$sortOrder = get('sortOrder', 'desc');
+						$jobType = get('jobType', '');
+						$limit = 50;
+						$offset = ($page - 1) * $limit;
+						
+						$allJobs = Queues::manager()->getByStatus('pending', 10000);
+						
+						// get all job types for filter
+						$allTypes = array_unique(array_map(function($job) {
+							return $job['name'] ?? $job['type'];
+						}, $allJobs));
+						sort($allTypes);
+						
+						$filteredJobs = $filterByTimeRange($allJobs, $timeRange);
+						
+						// filter by job type if specified
+						if ($jobType) {
+							$filteredJobs = array_filter($filteredJobs, function($job) use ($jobType) {
+								$jobName = $job['name'] ?? $job['type'];
+								return $jobName === $jobType;
+							});
+						}
+						
+						// sort jobs
+						usort($filteredJobs, function($a, $b) use ($sortBy, $sortOrder) {
+							$aVal = $a[$sortBy] ?? 0;
+							$bVal = $b[$sortBy] ?? 0;
+							
+							if ($sortOrder === 'asc') {
+								return $aVal <=> $bVal;
+							} else {
+								return $bVal <=> $aVal;
+							}
+						});
+						
+						$total = count($filteredJobs);
+						$jobs = array_slice($filteredJobs, $offset, $limit);
+						$stats = $getFilteredStats($timeRange);
 
 						return [
 							'component' => 'k-queues-view',
@@ -26,23 +206,68 @@ return [
 							'breadcrumb' => [
 								[
 									'label' => t('queues.status.pending'),
-									'link' => 'queues'
+									'link' => 'queues/pending'
 								]
 							],
 							'props' => [
 								'statistics' => $stats,
 								'jobs' => $jobs,
-								'total' => count(Queues::manager()->getByStatus('pending', 1000)),
-								'status' => 'pending'
+								'total' => $total,
+								'status' => 'pending',
+								'page' => $page,
+								'timeRange' => $timeRange,
+								'sortBy' => $sortBy,
+								'sortOrder' => $sortOrder,
+								'jobType' => $jobType,
+								'jobTypes' => $allTypes
 							]
 						];
 					}
 				],
 				[
 					'pattern' => 'queues/completed',
-					'action' => function () {
-						$stats = Queues::manager()->stats();
-						$jobs = Queues::manager()->getByStatus('completed', 50, 0);
+					'action' => function () use ($filterByTimeRange, $getFilteredStats) {
+						$timeRange = get('timeRange', '24h');
+						$page = (int) get('page', 1);
+						$sortBy = get('sortBy', 'created_at');
+						$sortOrder = get('sortOrder', 'desc');
+						$jobType = get('jobType', '');
+						$limit = 50;
+						$offset = ($page - 1) * $limit;
+						
+						$allJobs = Queues::manager()->getByStatus('completed', 10000);
+						
+						// get all job types for filter
+						$allTypes = array_unique(array_map(function($job) {
+							return $job['name'] ?? $job['type'];
+						}, $allJobs));
+						sort($allTypes);
+						
+						$filteredJobs = $filterByTimeRange($allJobs, $timeRange);
+						
+						// filter by job type if specified
+						if ($jobType) {
+							$filteredJobs = array_filter($filteredJobs, function($job) use ($jobType) {
+								$jobName = $job['name'] ?? $job['type'];
+								return $jobName === $jobType;
+							});
+						}
+						
+						// sort jobs
+						usort($filteredJobs, function($a, $b) use ($sortBy, $sortOrder) {
+							$aVal = $a[$sortBy] ?? 0;
+							$bVal = $b[$sortBy] ?? 0;
+							
+							if ($sortOrder === 'asc') {
+								return $aVal <=> $bVal;
+							} else {
+								return $bVal <=> $aVal;
+							}
+						});
+						
+						$total = count($filteredJobs);
+						$jobs = array_slice($filteredJobs, $offset, $limit);
+						$stats = $getFilteredStats($timeRange);
 
 						return [
 							'component' => 'k-queues-view',
@@ -56,17 +281,62 @@ return [
 							'props' => [
 								'statistics' => $stats,
 								'jobs' => $jobs,
-								'total' => count(Queues::manager()->getByStatus('completed', 1000)),
-								'status' => 'completed'
+								'total' => $total,
+								'status' => 'completed',
+								'page' => $page,
+								'timeRange' => $timeRange,
+								'sortBy' => $sortBy,
+								'sortOrder' => $sortOrder,
+								'jobType' => $jobType,
+								'jobTypes' => $allTypes
 							]
 						];
 					}
 				],
 				[
 					'pattern' => 'queues/running',
-					'action' => function () {
-						$stats = Queues::manager()->stats();
-						$jobs = Queues::manager()->getByStatus('running', 50, 0);
+					'action' => function () use ($filterByTimeRange, $getFilteredStats) {
+						$timeRange = get('timeRange', '24h');
+						$page = (int) get('page', 1);
+						$sortBy = get('sortBy', 'created_at');
+						$sortOrder = get('sortOrder', 'desc');
+						$jobType = get('jobType', '');
+						$limit = 50;
+						$offset = ($page - 1) * $limit;
+						
+						$allJobs = Queues::manager()->getByStatus('running', 10000);
+						
+						// get all job types for filter
+						$allTypes = array_unique(array_map(function($job) {
+							return $job['name'] ?? $job['type'];
+						}, $allJobs));
+						sort($allTypes);
+						
+						$filteredJobs = $filterByTimeRange($allJobs, $timeRange);
+						
+						// filter by job type if specified
+						if ($jobType) {
+							$filteredJobs = array_filter($filteredJobs, function($job) use ($jobType) {
+								$jobName = $job['name'] ?? $job['type'];
+								return $jobName === $jobType;
+							});
+						}
+						
+						// sort jobs
+						usort($filteredJobs, function($a, $b) use ($sortBy, $sortOrder) {
+							$aVal = $a[$sortBy] ?? 0;
+							$bVal = $b[$sortBy] ?? 0;
+							
+							if ($sortOrder === 'asc') {
+								return $aVal <=> $bVal;
+							} else {
+								return $bVal <=> $aVal;
+							}
+						});
+						
+						$total = count($filteredJobs);
+						$jobs = array_slice($filteredJobs, $offset, $limit);
+						$stats = $getFilteredStats($timeRange);
 
 						return [
 							'component' => 'k-queues-view',
@@ -80,17 +350,62 @@ return [
 							'props' => [
 								'statistics' => $stats,
 								'jobs' => $jobs,
-								'total' => count(Queues::manager()->getByStatus('running', 1000)),
-								'status' => 'running'
+								'total' => $total,
+								'status' => 'running',
+								'page' => $page,
+								'timeRange' => $timeRange,
+								'sortBy' => $sortBy,
+								'sortOrder' => $sortOrder,
+								'jobType' => $jobType,
+								'jobTypes' => $allTypes
 							]
 						];
 					}
 				],
 				[
 					'pattern' => 'queues/failed',
-					'action' => function () {
-						$stats = Queues::manager()->stats();
-						$jobs = Queues::manager()->getByStatus('failed', 50, 0);
+					'action' => function () use ($filterByTimeRange, $getFilteredStats) {
+						$timeRange = get('timeRange', '24h');
+						$page = (int) get('page', 1);
+						$sortBy = get('sortBy', 'created_at');
+						$sortOrder = get('sortOrder', 'desc');
+						$jobType = get('jobType', '');
+						$limit = 50;
+						$offset = ($page - 1) * $limit;
+						
+						$allJobs = Queues::manager()->getByStatus('failed', 10000);
+						
+						// get all job types for filter
+						$allTypes = array_unique(array_map(function($job) {
+							return $job['name'] ?? $job['type'];
+						}, $allJobs));
+						sort($allTypes);
+						
+						$filteredJobs = $filterByTimeRange($allJobs, $timeRange);
+						
+						// filter by job type if specified
+						if ($jobType) {
+							$filteredJobs = array_filter($filteredJobs, function($job) use ($jobType) {
+								$jobName = $job['name'] ?? $job['type'];
+								return $jobName === $jobType;
+							});
+						}
+						
+						// sort jobs
+						usort($filteredJobs, function($a, $b) use ($sortBy, $sortOrder) {
+							$aVal = $a[$sortBy] ?? 0;
+							$bVal = $b[$sortBy] ?? 0;
+							
+							if ($sortOrder === 'asc') {
+								return $aVal <=> $bVal;
+							} else {
+								return $bVal <=> $aVal;
+							}
+						});
+						
+						$total = count($filteredJobs);
+						$jobs = array_slice($filteredJobs, $offset, $limit);
+						$stats = $getFilteredStats($timeRange);
 
 						return [
 							'component' => 'k-queues-view',
@@ -104,8 +419,14 @@ return [
 							'props' => [
 								'statistics' => $stats,
 								'jobs' => $jobs,
-								'total' => count(Queues::manager()->getByStatus('failed', 1000)),
-								'status' => 'failed'
+								'total' => $total,
+								'status' => 'failed',
+								'page' => $page,
+								'timeRange' => $timeRange,
+								'sortBy' => $sortBy,
+								'sortOrder' => $sortOrder,
+								'jobType' => $jobType,
+								'jobTypes' => $allTypes
 							]
 						];
 					}

@@ -36,6 +36,9 @@
 	
 	"queues.total": "Total",
 	"queues.overview": "Overview",
+	"queues.all": "All Jobs",
+	
+	"queues.jobType.all": "All Types",
 	
 	"queues.timeRange.lastHour": "Last hour",
 	"queues.timeRange.last24Hours": "Last 24 hours",

@@ -13,7 +13,60 @@ return [
 			'pattern' => 'queues/stats',
 			'method' => 'GET',
 			'action' => function () {
-				return Queues::manager()->stats();
+				$timeRange = $this->requestQuery('timeRange', null);
+				
+				if (!$timeRange || $timeRange === 'all') {
+					return Queues::manager()->stats();
+				}
+				
+				$now = time();
+				$cutoff = $now;
+				
+				switch ($timeRange) {
+					case '1h':
+						$cutoff = $now - 3600;
+						break;
+					case '24h':
+						$cutoff = $now - 86400;
+						break;
+					case '7d':
+						$cutoff = $now - 604800;
+						break;
+					case '30d':
+						$cutoff = $now - 2592000;
+						break;
+				}
+				
+				$stats = [
+					'total' => 0,
+					'by_status' => [
+						'pending' => 0,
+						'running' => 0,
+						'completed' => 0,
+						'failed' => 0
+					],
+					'by_queue' => []
+				];
+				
+				foreach (['pending', 'running', 'completed', 'failed'] as $status) {
+					$jobs = Queues::manager()->getByStatus($status, 10000);
+					$filteredJobs = array_filter($jobs, function($job) use ($cutoff) {
+						return ($job['created_at'] ?? 0) >= $cutoff;
+					});
+					$count = count($filteredJobs);
+					$stats['by_status'][$status] = $count;
+					$stats['total'] += $count;
+					
+					foreach ($filteredJobs as $job) {
+						$queue = $job['queue'] ?? 'default';
+						if (!isset($stats['by_queue'][$queue])) {
+							$stats['by_queue'][$queue] = 0;
+						}
+						$stats['by_queue'][$queue]++;
+					}
+				}
+				
+				return $stats;
 			}
 		],
 		[
@@ -23,10 +76,43 @@ return [
 				$status = $this->requestQuery('status', JobStatus::PENDING->value);
 				$limit = (int) $this->requestQuery('limit', 50);
 				$offset = (int) $this->requestQuery('offset', 0);
+				$timeRange = $this->requestQuery('timeRange', null);
+
+				// Get all jobs for the status
+				$allJobs = Queues::manager()->getByStatus($status, 10000);
+				
+				// Filter by time range if specified
+				if ($timeRange && $timeRange !== 'all') {
+					$now = time();
+					$cutoff = $now;
+					
+					switch ($timeRange) {
+						case '1h':
+							$cutoff = $now - 3600;
+							break;
+						case '24h':
+							$cutoff = $now - 86400;
+							break;
+						case '7d':
+							$cutoff = $now - 604800;
+							break;
+						case '30d':
+							$cutoff = $now - 2592000;
+							break;
+					}
+					
+					$allJobs = array_filter($allJobs, function($job) use ($cutoff) {
+						return ($job['created_at'] ?? 0) >= $cutoff;
+					});
+				}
+				
+				// Apply pagination
+				$total = count($allJobs);
+				$jobs = array_slice($allJobs, $offset, $limit);
 
 				return [
-					'jobs' => Queues::manager()->getByStatus($status, $limit, $offset),
-					'total' => count(Queues::manager()->getByStatus($status, 1000))
+					'jobs' => $jobs,
+					'total' => $total
 				];
 			}
 		],
