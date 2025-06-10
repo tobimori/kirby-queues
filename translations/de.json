@@ -1,0 +1,54 @@
+{
+	"queues.title": "Hintergrundaufgaben",
+	"queues.jobs": "Hintergrundaufgaben",
+	"queues.running": "In Bearbeitung",
+	"queues.scheduled": "Geplant",
+	"queues.failed": "Fehlgeschlagen",
+	"queues.metrics": "Statistiken",
+	
+	"queues.job.id": "ID",
+	"queues.job.type": "Typ",
+	"queues.job.name": "Name",
+	"queues.job.queue": "Warteschlange",
+	"queues.job.status": "Status",
+	"queues.job.created": "Erstellt",
+	"queues.job.started": "Gestartet",
+	"queues.job.completed": "Abgeschlossen",
+	"queues.job.failed": "Fehlgeschlagen",
+	"queues.job.attempts": "Versuche",
+	"queues.job.progress": "Fortschritt",
+	
+	"queues.action.retry": "Wiederholen",
+	"queues.action.delete": "Löschen",
+	"queues.action.run": "Jetzt ausführen",
+	"queues.action.clear": "Leeren",
+	"queues.action.refresh": "Aktualisieren",
+	
+	"queues.status.pending": "Wartend",
+	"queues.status.running": "In Bearbeitung",
+	"queues.status.completed": "Abgeschlossen",
+	"queues.status.failed": "Fehlgeschlagen",
+	
+	"queues.empty": "Keine Hintergrundaufgaben gefunden",
+	"queues.worker.status": "Worker-Status",
+	"queues.worker.running": "Worker läuft",
+	"queues.worker.stopped": "Worker gestoppt",
+	
+	"queues.total": "Gesamt",
+	"queues.overview": "Übersicht",
+	
+	"queues.timeRange.lastHour": "Letzte Stunde",
+	"queues.timeRange.last24Hours": "Letzte 24 Stunden",
+	"queues.timeRange.last7Days": "Letzte 7 Tage",
+	"queues.timeRange.last30Days": "Letzte 30 Tage",
+	"queues.timeRange.allTime": "Gesamter Zeitraum",
+	
+	"queues.dialog.deleteJob": "Möchten Sie diese Aufgabe wirklich löschen?",
+	"queues.dialog.clearFailed": "Möchten Sie wirklich alle fehlgeschlagenen Aufgaben löschen? Diese Aktion kann nicht rückgängig gemacht werden.",
+	"queues.dialog.removeScheduled": "Möchten Sie diese geplante Aufgabe wirklich entfernen?",
+	
+	"queues.notification.jobQueued": "Aufgabe wurde zur Wiederholung eingereiht",
+	"queues.notification.jobDeleted": "Aufgabe gelöscht",
+	"queues.notification.failedCleared": "Fehlgeschlagene Aufgaben gelöscht",
+	"queues.notification.scheduledRemoved": "Geplante Aufgabe entfernt"
+}

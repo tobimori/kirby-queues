@@ -1,0 +1,59 @@
+{
+	"name": "tobimori/kirby-queues",
+	"description": "A comprehensive background job queue system for Kirby CMS with scheduled task support and panel monitoring interface",
+	"license": "MIT",
+	"type": "kirby-plugin",
+	"version": "1.0.0",
+	"authors": [
+		{
+			"name": "Tobias Möritz",
+			"email": "tobias@moeritz.io"
+		}
+	],
+	"keywords": [
+		"kirby",
+		"kirby-cms",
+		"kirby-plugin",
+		"queues",
+		"jobs",
+		"background-tasks",
+		"scheduler"
+	],
+	"minimum-stability": "RC",
+	"require": {
+		"php": "^8.3",
+		"getkirby/composer-installer": "^1.2"
+	},
+	"require-dev": {
+		"getkirby/cms": "^5.0",
+		"pestphp/pest": "^2.0",
+		"phpstan/phpstan": "^1.0",
+		"friendsofphp/php-cs-fixer": "^3.0"
+	},
+	"autoload": {
+		"psr-4": {
+			"tobimori\\Queues\\": "classes/"
+		},
+		"files": [
+			"helpers.php"
+		]
+	},
+	"extra": {
+		"kirby-cms-path": false
+	},
+	"config": {
+		"optimize-autoloader": true,
+		"sort-packages": true,
+		"allow-plugins": {
+			"pestphp/pest-plugin": true,
+			"getkirby/composer-installer": true
+		}
+	},
+	"scripts": {
+		"dist": "composer install --no-dev --optimize-autoloader",
+		"test": "vendor/bin/pest",
+		"stan": "vendor/bin/phpstan analyse",
+		"fix": "vendor/bin/php-cs-fixer fix",
+		"check": "vendor/bin/php-cs-fixer fix --dry-run --diff"
+	}
+}
