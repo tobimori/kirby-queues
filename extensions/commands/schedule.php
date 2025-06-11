@@ -9,33 +9,51 @@ return [
 		$scheduler = Queues::scheduler();
 		$scheduled = $scheduler->all();
 
+		$cli->br();
+		$cli->bold()->out('⏰ Scheduled Jobs');
+		$cli->br();
+
 		if (empty($scheduled)) {
-			$cli->info('No scheduled jobs found');
+			$cli->yellow()->out('No scheduled jobs found');
 			return;
 		}
 
-		$cli->br();
-		$cli->out('Scheduled Jobs:', 'comment');
-		$cli->br();
-
+		$scheduleData = [];
 		foreach ($scheduled as $schedule) {
-			$cli->out("Job: {$schedule['job']}", 'info');
-			$cli->out("  Expression: {$schedule['expression']}");
-			$cli->out("  Timezone: {$schedule['timezone']}");
+			$lastRun = $schedule['lastRun'] ? date('Y-m-d H:i:s', $schedule['lastRun']) : 'Never';
+			$nextRun = $schedule['nextRun'] ? date('Y-m-d H:i:s', $schedule['nextRun']) : 'N/A';
+			$queue = $schedule['options']['queue'] ?? 'default';
+			
+			$scheduleData[] = [
+				'Job' => $schedule['job'],
+				'Schedule' => $schedule['expression'],
+				'Queue' => $queue,
+				'Last Run' => $lastRun,
+				'Next Run' => $nextRun,
+				'Timezone' => $schedule['timezone']
+			];
+		}
 
-			if ($schedule['lastRun']) {
-				$cli->out("  Last run: " . date('Y-m-d H:i:s', $schedule['lastRun']));
+		$cli->table($scheduleData);
+		$cli->br();
+
+		$padding = $cli->padding(25)->char('.');
+		$padding->label('Total scheduled jobs')->result(count($scheduled));
+		
+		$nextJob = null;
+		$nextTime = PHP_INT_MAX;
+		foreach ($scheduled as $schedule) {
+			if ($schedule['nextRun'] && $schedule['nextRun'] < $nextTime) {
+				$nextTime = $schedule['nextRun'];
+				$nextJob = $schedule;
 			}
-
-			if ($schedule['nextRun']) {
-				$cli->out("  Next run: " . date('Y-m-d H:i:s', $schedule['nextRun']));
-			}
-
-			if (!empty($schedule['options']['queue'])) {
-				$cli->out("  Queue: {$schedule['options']['queue']}");
-			}
-
+		}
+		
+		if ($nextJob) {
 			$cli->br();
+			$cli->bold()->out('⏭️  Next job to run:');
+			$cli->tab()->out($nextJob['job']);
+			$cli->tab()->out('at ' . date('Y-m-d H:i:s', $nextJob['nextRun']));
 		}
 	}
 ];

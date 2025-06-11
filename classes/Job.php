@@ -3,6 +3,7 @@
 namespace tobimori\Queues;
 
 use Kirby\Cms\App;
+use Kirby\CLI\CLI;
 
 /**
  * Abstract base class for all queue jobs
@@ -45,6 +46,12 @@ abstract class Job
 	 * @internal
 	 */
 	protected ?string $progressMessage = null;
+	
+	/**
+	 * @var CLI|null CLI instance for output
+	 * @internal
+	 */
+	protected ?CLI $cli = null;
 
 	/**
 	 * Unique job type identifier
@@ -181,6 +188,16 @@ abstract class Job
 	{
 		return $this->options['attempts'] ?? App::instance()->option('tobimori.queues.worker.tries', 3);
 	}
+	
+	/**
+	 * Set CLI instance for output
+	 * @internal
+	 */
+	public function setCli(?CLI $cli): static
+	{
+		$this->cli = $cli;
+		return $this;
+	}
 
 	/**
 	 * Get retry backoff time in seconds
@@ -233,6 +250,18 @@ abstract class Job
 	{
 		if ($this->id !== null) {
 			Queues::manager()->addJobLog($this->id, $level, $message, $context);
+		}
+		
+		// Also output to CLI if available
+		if ($this->cli !== null) {
+			$timestamp = date('d.m.Y H:i:s:');
+			
+			match ($level) {
+				'error' => $this->cli->out("<red>{$timestamp}</red>  <bold><red>ERROR</red></bold>    {$message}"),
+				'warning' => $this->cli->out("<yellow>{$timestamp}</yellow>  <bold><yellow>WARNING</yellow></bold>  {$message}"),
+				'debug' => $this->cli->out("<dim>{$timestamp}  DEBUG    {$message}</dim>"),
+				default => $this->cli->out("<blue>{$timestamp}</blue>  <bold><blue>INFO</blue></bold>     {$message}")
+			};
 		}
 	}
 

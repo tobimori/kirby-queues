@@ -105,7 +105,7 @@ const reports = computed(() => {
 
 		<k-section
 			:label="$t('queues.drawer.payload')"
-			v-if="props.job?.payload !== '[]'"
+			v-if="JSON.stringify(props.job?.payload) !== '[]'"
 		>
 			<k-code language="json">{{
 				JSON.stringify(props.job?.payload || {}, null, 2)

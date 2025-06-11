@@ -49,57 +49,18 @@ return [
 		]
 	],
 	'command' => function (CLI $cli) {
-		// Ensure queue system is initialized
-		try {
-			Queues::manager();
-		} catch (\RuntimeException $e) {
-			Queues::init();
-		}
+		$queues = $cli->arg('queue') ? array_map('trim', explode(',', $cli->arg('queue'))) : null;
 
-		// get arguments from CLI
-		$queue = $cli->arg('queue');
-		$once = $cli->isDefined('once');
-		$timeout = $cli->arg('timeout');
-		$memory = $cli->arg('memory');
-		$sleep = $cli->arg('sleep');
-		$tries = $cli->arg('tries');
-		$maxJobs = $cli->arg('max-jobs');
-
-		// parse queue names
-		$queues = null;
-		if (!empty($queue)) {
-			$queues = array_map('trim', explode(',', $queue));
-		}
-
-		// build options from CLI arguments
-		$options = [];
-
-		// Only add options if they have actual values
-		if (!empty($timeout) && is_numeric($timeout)) {
-			$options['timeout'] = (int)$timeout;
-		}
-
-		if (!empty($memory) && is_numeric($memory)) {
-			$options['memory'] = (int)$memory;
-		}
-
-		if (!empty($sleep) && is_numeric($sleep)) {
-			$options['sleep'] = (int)$sleep;
-		}
-
-		if (!empty($tries) && is_numeric($tries)) {
-			$options['tries'] = (int)$tries;
-		}
-
-		if (!empty($maxJobs) && is_numeric($maxJobs)) {
-			$options['maxJobs'] = (int)$maxJobs;
-		}
-
-		// create and start worker
-		$worker = new Worker(null, $cli, $options);
+		$worker = new Worker(null, $cli, array_filter([
+			'timeout' => $cli->arg('timeout'),
+			'memory' => $cli->arg('memory'),
+			'sleep' => $cli->arg('sleep'),
+			'tries' => $cli->arg('tries'),
+			'maxJobs' => $cli->arg('max-jobs')
+		]));
 
 		try {
-			$worker->work($queues, $once);
+			$worker->work($queues, $cli->isDefined('once'));
 		} catch (\Exception $e) {
 			$cli->error("Worker error: " . $e->getMessage());
 			exit(1);

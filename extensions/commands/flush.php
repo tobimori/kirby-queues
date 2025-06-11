@@ -1,7 +1,6 @@
 <?php
 
 use Kirby\CLI\CLI;
-use tobimori\Queues\Queues;
 
 return [
 	'description' => 'Clear all jobs from all queues',
@@ -17,21 +16,20 @@ return [
 		$force = $cli->isDefined('force');
 
 		if (!$force) {
-			$cli->confirmToContinue('This will permanently delete all jobs from all queues. Continue?');
+			$cli->br();
+			$cli->bold()->yellow()->out('⚠️  Warning');
+			$cli->out('This will permanently delete all jobs from all queues.');
+			$cli->br();
+			$cli->confirmToContinue('Are you sure you want to continue?');
 		}
 
-		// Get the cache instance
-		$cache = $cli->kirby()->cache('tobimori.queues');
+		$cli->br();
+		$cli->bold()->out('🗑️  Flushing all queues...');
 
-		// Clear all cache entries
+		$cache = $cli->kirby()->cache('tobimori.queues');
 		$cache->flush();
 
-		$cli->success('All queues have been flushed.');
-
-		// Show empty stats
-		$stats = Queues::manager()->stats();
 		$cli->br();
-		$cli->out('Queue Statistics:');
-		$cli->out("Total jobs: " . $stats['total']);
+		$cli->green()->bold()->out('✓ All queues have been flushed');
 	}
 ];

@@ -17,12 +17,12 @@ return [
 	'command' => function (CLI $cli) {
 		$count = $cli->arg('count') ?? 5;
 
-		$cli->info("Creating {$count} example jobs...");
+		$cli->br();
+		$cli->bold()->out("🚀 Creating {$count} example jobs");
 		$cli->br();
 
-		$jobIds = [];
+		$createdJobs = [];
 
-		// Create regular jobs
 		for ($i = 1; $i <= $count; $i++) {
 			$queue = match ($i % 3) {
 				0 => 'high',
@@ -35,47 +35,56 @@ return [
 				'duration' => rand(2, 5)
 			], $queue);
 
-			$jobIds[] = $jobId;
-			$cli->out("✓ Created job {$jobId} in '{$queue}' queue");
+			$createdJobs[] = [
+				'ID' => substr($jobId, 0, 8) . '...',
+				'Type' => 'Regular',
+				'Queue' => $queue,
+				'Status' => 'pending'
+			];
 		}
 
-		// Create a delayed job
 		$delayedJobId = Queues::later(10, ExampleJob::class, [
 			'message' => 'Delayed example job',
 			'duration' => 3
 		]);
-		$cli->out("✓ Created delayed job {$delayedJobId} (will run in 10 seconds)");
+		
+		$createdJobs[] = [
+			'ID' => substr($delayedJobId, 0, 8) . '...',
+			'Type' => 'Delayed (10s)',
+			'Queue' => 'default',
+			'Status' => 'pending'
+		];
 
-		// Create a failing job
 		$failingJobId = Queues::push(FailingExampleJob::class);
-		$cli->out("✓ Created failing job {$failingJobId} (will retry 2 times)");
+		
+		$createdJobs[] = [
+			'ID' => substr($failingJobId, 0, 8) . '...',
+			'Type' => 'Failing',
+			'Queue' => 'default',
+			'Status' => 'pending'
+		];
 
+		$cli->table($createdJobs);
 		$cli->br();
 
-		// Show statistics
 		$stats = Queues::manager()->stats();
-		$cli->success("Queue Statistics:");
-		$cli->out("Total jobs: " . $stats['total']);
-		$cli->out("By status:");
-		foreach ($stats['by_status'] as $status => $count) {
-			$cli->out("  {$status}: {$count}");
-		}
-		$cli->out("By queue:");
-		foreach ($stats['by_queue'] as $queue => $count) {
-			$cli->out("  {$queue}: {$count}");
-		}
+		$cli->bold()->green()->out('✓ Jobs created successfully!');
+		$cli->br();
+		
+		$padding = $cli->padding(20)->char('.');
+		$padding->label('Total jobs')->result($stats['total']);
+		$cli->br();
 
+		$cli->bold()->out('📝 Next steps:');
 		$cli->br();
-		$cli->info("To process these jobs, run:");
-		$cli->out("  kirby queues:work");
-		$cli->br();
-		$cli->info("To process jobs from a specific queue:");
-		$cli->out("  kirby queues:work high");
-		$cli->br();
-		$cli->info("To process only one job:");
-		$cli->out("  kirby queues:work --once");
-		$cli->br();
-		$cli->info("To monitor queue status:");
-		$cli->out("  kirby queues:status");
+		
+		$commands = [
+			['Command' => 'kirby queues:work', 'Description' => 'Process all jobs'],
+			['Command' => 'kirby queues:work high', 'Description' => 'Process high priority queue'],
+			['Command' => 'kirby queues:work --once', 'Description' => 'Process single job'],
+			['Command' => 'kirby queues:status', 'Description' => 'Monitor queue status']
+		];
+		
+		$cli->table($commands);
 	}
 ];

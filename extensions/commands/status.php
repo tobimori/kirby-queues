@@ -10,38 +10,53 @@ return [
 		$stats = $manager->stats();
 
 		$cli->br();
-		$cli->out('Queue Statistics:', 'comment');
+		$cli->bold()->out('📊 Queue Statistics');
 		$cli->br();
 
-		// overall stats
-		$cli->out('Total jobs: ' . $stats['total']);
+		$padding = $cli->padding(25)->char('.');
+		$padding->label('Total jobs')->result($stats['total']);
 		$cli->br();
 
-		// status breakdown
-		$cli->out('By Status:', 'comment');
-		foreach ($stats['by_status'] as $status => $count) {
-			$cli->out("  {$status}: {$count}");
-		}
-		$cli->br();
-
-		// queue breakdown
-		if (!empty($stats['by_queue'])) {
-			$cli->out('By Queue:', 'comment');
-			foreach ($stats['by_queue'] as $queue => $count) {
-				$cli->out("  {$queue}: {$count}");
+		if (!empty($stats['by_status'])) {
+			$cli->bold()->out('Job Status:');
+			$statusData = [];
+			foreach ($stats['by_status'] as $status => $count) {
+				$statusData[] = [
+					'Status' => ucfirst($status),
+					'Count' => $count,
+					'Percentage' => $stats['total'] > 0 ? round(($count / $stats['total']) * 100, 1) . '%' : '0%'
+				];
 			}
+			$cli->table($statusData);
 			$cli->br();
 		}
 
-		// scheduled jobs
+		if (!empty($stats['by_queue'])) {
+			$cli->bold()->out('By Queue:');
+			$queueData = [];
+			foreach ($stats['by_queue'] as $queue => $count) {
+				$queueData[] = [
+					'Queue' => $queue,
+					'Jobs' => $count
+				];
+			}
+			$cli->table($queueData);
+			$cli->br();
+		}
+
 		$scheduled = $manager->scheduler()->all();
 		if (!empty($scheduled)) {
-			$cli->out('Scheduled Jobs:', 'comment');
+			$cli->bold()->out('⏰ Scheduled Jobs:');
+			$scheduledData = [];
 			foreach ($scheduled as $schedule) {
 				$nextRun = $schedule['nextRun'] ? date('Y-m-d H:i:s', $schedule['nextRun']) : 'N/A';
-				$cli->out("  {$schedule['job']} ({$schedule['expression']}) - Next: {$nextRun}");
+				$scheduledData[] = [
+					'Job' => $schedule['job'],
+					'Schedule' => $schedule['expression'],
+					'Next Run' => $nextRun
+				];
 			}
-			$cli->br();
+			$cli->table($scheduledData);
 		}
 	}
 ];

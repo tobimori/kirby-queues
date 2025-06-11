@@ -90,8 +90,15 @@ class Worker
 	{
 		$queues = $this->normalizeQueues($queues);
 
-		$this->output("Worker {$this->workerId} started", 'info');
-		$this->output("Processing queues: " . implode(', ', $queues), 'info');
+		$this->cli->br();
+		$this->cli->bold()->out('🚀 Queue Worker Started');
+		$this->cli->br();
+
+		$padding = $this->cli->padding(25)->char('.');
+		$padding->label('Worker ID')->result(substr($this->workerId, 0, 20) . '...');
+		$padding->label('Processing queues')->result(implode(', ', $queues));
+		$padding->label('Mode')->result($once ? 'Single job' : 'Continuous');
+		$this->cli->br();
 
 		while (!$this->shouldStop) {
 			// check scheduled jobs every loop iteration
@@ -110,7 +117,6 @@ class Worker
 
 					// check if we should restart
 					if ($this->shouldRestart()) {
-						$this->output("Restarting after {$this->jobsProcessed} jobs (maxJobs: " . ($this->options['maxJobs'] ?? 'not set') . ")", 'info');
 						$this->stop();
 						break;
 					}
@@ -133,7 +139,11 @@ class Worker
 			}
 		}
 
-		$this->output("Worker {$this->workerId} stopped", 'info');
+		if ($this->cli) {
+			$this->cli->br();
+			$this->cli->bold()->out('✋ Worker stopped');
+			$this->cli->br();
+		}
 	}
 
 	/**
@@ -143,11 +153,11 @@ class Worker
 	{
 		$startTime = microtime(true);
 
-		$this->output("Processing job {$job->id()} [{$job->type()}]", 'info');
+		$this->output("Job started", 'info');
 
 		// mark job as running (this increments attempts in storage)
 		$this->manager->markRunning($job->id(), $this->workerId);
-		
+
 		// Add log entry for job start
 		$this->manager->addJobLog($job->id(), 'info', 'Job started', [
 			'worker' => $this->workerId,
@@ -164,9 +174,12 @@ class Worker
 				pcntl_alarm($timeout);
 			}
 
+			// Pass CLI instance to job for output
+			$job->setCli($this->cli);
+			
 			// execute the job
 			$job->handle();
-			
+
 			// Add log entry for job completion
 			$this->manager->addJobLog($job->id(), 'info', 'Job completed successfully');
 
@@ -185,10 +198,9 @@ class Worker
 				microtime(true)
 			);
 
-			$this->output("Job {$job->id()} completed in {$result->durationMs()}ms", 'success');
+			$this->output("Job completed successfully", 'info');
 
 			return $result;
-
 		} catch (\Exception $e) {
 			// clear timeout
 			if (isset($timeout) && $timeout > 0 && function_exists('pcntl_alarm')) {
@@ -204,8 +216,8 @@ class Worker
 	 */
 	protected function handleFailedJob(Job $job, \Exception $exception, float $startTime): JobResult
 	{
-		$this->output("Job {$job->id()} failed: " . $exception->getMessage(), 'error');
-		
+		$this->output("Job failed: " . $exception->getMessage(), 'error');
+
 		// Add log entry for job failure
 		$this->manager->addJobLog($job->id(), 'error', 'Job failed: ' . $exception->getMessage(), [
 			'exception' => get_class($exception),
@@ -216,11 +228,11 @@ class Worker
 		// check if job should be retried
 		if ($job->shouldRetry()) {
 			$delay = $job->retryBackoff();
-			
+
 			$this->manager->release($job->id(), $delay);
 
-			$this->output("Job {$job->id()} will be retried in {$delay} seconds (attempt {$job->attempts()}/{$job->maxAttempts()})", 'warning');
-			
+			$this->output("Job will be retried in {$delay} seconds (attempt {$job->attempts()}/{$job->maxAttempts()})", 'warning');
+
 			// Add log entry for retry
 			$this->manager->addJobLog($job->id(), 'warning', "Job will be retried in {$delay} seconds", [
 				'attempt' => $job->attempts(),
@@ -240,7 +252,7 @@ class Worker
 
 		// mark as failed
 		$this->manager->markFailed($job->id(), $exception);
-		
+
 		// Add log entry for permanent failure
 		$this->manager->addJobLog($job->id(), 'error', 'Job permanently failed after all retries', [
 			'attempts' => $job->attempts(),
@@ -251,7 +263,8 @@ class Worker
 		try {
 			$job->failed($exception);
 		} catch (\Exception $e) {
-			$this->output("Job {$job->id()} failed handler threw exception: " . $e->getMessage(), 'error');
+			// Log failed handler exception
+			$this->manager->addJobLog($job->id(), 'error', 'Failed handler threw exception: ' . $e->getMessage());
 		}
 
 		return new JobResult(
@@ -272,8 +285,8 @@ class Worker
 		try {
 			$queued = $this->manager->scheduler()->runDue();
 
-			if (!empty($queued)) {
-				$this->output("Queued " . count($queued) . " scheduled job(s)", 'info');
+			if (!empty($queued) && $this->cli) {
+				$this->cli->dim()->out("📅 Queued " . count($queued) . " scheduled job(s)");
 			}
 		} catch (\Exception $e) {
 			$this->output("Failed to run scheduled jobs: " . $e->getMessage(), 'error');
@@ -317,16 +330,20 @@ class Worker
 		if ($maxJobs <= 0) {
 			$maxJobs = 1000;
 		}
-		
+
 		if ($this->jobsProcessed >= $maxJobs) {
-			$this->output("Max jobs reached ({$this->jobsProcessed}/{$maxJobs})", 'info');
+			if ($this->cli) {
+				$this->cli->dim()->out("🔄 Max jobs reached ({$this->jobsProcessed}/{$maxJobs}) - restarting");
+			}
 			return true;
 		}
 
 		// restart if memory limit exceeded
 		$memoryLimit = ($this->options['memory'] ?? 128) * 1024 * 1024;
 		if (memory_get_usage(true) >= $memoryLimit) {
-			$this->output("Memory limit exceeded ({$this->options['memory']}MB)", 'warning');
+			if ($this->cli) {
+				$this->cli->yellow()->out("⚠️ Memory limit exceeded ({$this->options['memory']}MB) - restarting");
+			}
 			return true;
 		}
 
@@ -366,14 +383,14 @@ class Worker
 			return;
 		}
 
-		$timestamp = date('Y-m-d H:i:s');
-		$message = "[{$timestamp}] {$message}";
+		$timestamp = date('d.m.Y H:i:s:');
 
 		match ($type) {
-			'success' => $this->cli->success($message),
-			'error' => $this->cli->error($message),
-			'warning' => $this->cli->warning($message),
-			default => $this->cli->info($message)
+			'success' => $this->cli->out("<green>{$timestamp}</green>  <bold><green>SUCCESS</green></bold>  {$message}"),
+			'error' => $this->cli->out("<red>{$timestamp}</red>  <bold><red>ERROR</red></bold>    {$message}"),
+			'warning' => $this->cli->out("<yellow>{$timestamp}</yellow>  <bold><yellow>WARNING</yellow></bold>  {$message}"),
+			'debug' => $this->cli->out("<dim>{$timestamp}  DEBUG    {$message}</dim>"),
+			default => $this->cli->out("<blue>{$timestamp}</blue>  <bold><blue>INFO</blue></bold>     {$message}")
 		};
 	}
 
