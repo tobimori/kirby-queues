@@ -1,14 +1,5 @@
 <script setup>
-import {
-	computed,
-	onBeforeUnmount,
-	onMounted,
-	ref,
-	watch,
-	useApi,
-	usePanel,
-	useApp
-} from "kirbyuse"
+import { computed, ref, usePanel, useApp } from "kirbyuse"
 
 const props = defineProps({
 	statistics: Object,
@@ -45,25 +36,33 @@ const props = defineProps({
 })
 
 const panel = usePanel()
-const api = useApi()
 const app = useApp()
-
-const loading = ref(false)
-const currentJobs = ref(transformJobs(props.jobs || []))
-const currentTotal = ref(props.total || 0)
-const currentPage = ref(props.page)
 const limit = 50
-const currentTimeRange = ref(props.timeRange)
-const currentSortBy = ref(props.sortBy)
-const currentSortOrder = ref(props.sortOrder)
-const currentJobType = ref(props.jobType)
-let refreshInterval = null
-let isDrawerOpen = false
 
-const jobtype = ref(null)
-const timerange = ref(null)
+const transformedJobs = computed(() =>
+	(props.jobs ?? []).map((job) => ({
+		id: job.id,
+		name: job.name || job.type,
+		type: job.type,
+		queue: job.queue,
+		status: job.status,
+		attempts: job.attempts || 0,
+		created_at: job.created_at
+			? new Date(job.created_at * 1000).toISOString()
+			: null,
+		started_at: job.started_at
+			? new Date(job.started_at * 1000).toISOString()
+			: null,
+		completed_at: job.completed_at
+			? new Date(job.completed_at * 1000).toISOString()
+			: null,
+		failed_at: job.failed_at
+			? new Date(job.failed_at * 1000).toISOString()
+			: null
+	}))
+)
 
-const statsReports = computed(() => {
+const reports = computed(() => {
 	const stats = props.statistics || { total: 0, by_status: {} }
 
 	return [
@@ -94,26 +93,37 @@ const statsReports = computed(() => {
 	]
 })
 
-const currentStatus = computed(() => {
-	if (props.status === "completed") return "jobs"
-	return props.status
-})
+function buildQueryString(overrides = {}) {
+	const params = {
+		timeRange: props.timeRange,
+		jobType: props.jobType,
+		sortBy: props.sortBy,
+		sortOrder: props.sortOrder,
+		page: props.page,
+		...overrides
+	}
 
-const statusTabs = computed(() => {
-	const params = new URLSearchParams()
-	if (currentTimeRange.value !== "24h") {
-		params.set("timeRange", currentTimeRange.value)
+	const defaults = {
+		timeRange: "24h",
+		jobType: "",
+		sortBy: "created_at",
+		sortOrder: "desc",
+		page: 1
 	}
-	if (currentJobType.value) {
-		params.set("jobType", currentJobType.value)
+
+	const queryParams = new URLSearchParams()
+
+	for (const [key, value] of Object.entries(params)) {
+		if (value && value !== defaults[key]) {
+			queryParams.set(key, value.toString())
+		}
 	}
-	if (currentSortBy.value !== "created_at") {
-		params.set("sortBy", currentSortBy.value)
-	}
-	if (currentSortOrder.value !== "desc") {
-		params.set("sortOrder", currentSortOrder.value)
-	}
-	const queryString = params.toString() ? "?" + params.toString() : ""
+
+	return queryParams.toString() ? "?" + queryParams.toString() : ""
+}
+
+const tabs = computed(() => {
+	const queryString = buildQueryString({ page: undefined })
 
 	return [
 		{
@@ -135,7 +145,7 @@ const statusTabs = computed(() => {
 			link: "/queues/running" + queryString
 		},
 		{
-			name: "jobs",
+			name: "completed",
 			label: panel.t("queues.status.completed"),
 			icon: "check",
 			link: "/queues/completed" + queryString
@@ -149,26 +159,13 @@ const statusTabs = computed(() => {
 	]
 })
 
-const timeRanges = computed(() => [
+const timeRanges = [
 	{ value: "1h", label: panel.t("queues.timeRange.lastHour") },
 	{ value: "24h", label: panel.t("queues.timeRange.last24Hours") },
 	{ value: "7d", label: panel.t("queues.timeRange.last7Days") },
 	{ value: "30d", label: panel.t("queues.timeRange.last30Days") },
 	{ value: "all", label: panel.t("queues.timeRange.allTime") }
-])
-
-const timeRangeLabel = computed(() => {
-	const range = timeRanges.value.find((r) => r.value === currentTimeRange.value)
-	return range ? range.label : panel.t("queues.timeRange.last24Hours")
-})
-
-const jobTypeLabel = computed(() => {
-	if (!currentJobType.value) {
-		return panel.t("queues.jobType.all")
-	}
-	const type = props.jobTypes.find((t) => t.value === currentJobType.value)
-	return type ? type.label : currentJobType.value
-})
+]
 
 const columns = computed(() => {
 	const cols = {
@@ -210,171 +207,13 @@ const columns = computed(() => {
 	return cols
 })
 
-watch(
-	() => props.jobs,
-	(newJobs) => {
-		currentJobs.value = transformJobs(newJobs || [])
-	}
-)
-
-watch(
-	() => props.total,
-	(newTotal) => {
-		currentTotal.value = newTotal || 0
-	}
-)
-
-watch(
-	() => props.page,
-	(newPage) => {
-		currentPage.value = newPage
-	}
-)
-
-watch(
-	() => props.timeRange,
-	(newTimeRange) => {
-		currentTimeRange.value = newTimeRange
-	}
-)
-
-watch(
-	() => props.sortBy,
-	(newSortBy) => {
-		currentSortBy.value = newSortBy
-	}
-)
-
-watch(
-	() => props.sortOrder,
-	(newSortOrder) => {
-		currentSortOrder.value = newSortOrder
-	}
-)
-
-watch(
-	() => props.jobType,
-	(newJobType) => {
-		currentJobType.value = newJobType
-	}
-)
-
-onMounted(() => {
-	refreshInterval = setInterval(() => {
-		refresh()
-	}, 15000)
-})
-
-onBeforeUnmount(() => {
-	if (refreshInterval) {
-		clearInterval(refreshInterval)
-	}
-})
-
-function transformJobs(jobs) {
-	return jobs.map((job) => ({
-		id: job.id,
-		name: job.name || job.type,
-		type: job.type,
-		queue: job.queue,
-		status: job.status,
-		attempts: job.attempts || 0,
-		created_at: job.created_at
-			? new Date(job.created_at * 1000).toISOString()
-			: null,
-		started_at: job.started_at
-			? new Date(job.started_at * 1000).toISOString()
-			: null,
-		completed_at: job.completed_at
-			? new Date(job.completed_at * 1000).toISOString()
-			: null,
-		failed_at: job.failed_at
-			? new Date(job.failed_at * 1000).toISOString()
-			: null
-	}))
-}
-
-function paginate(pagination) {
+function navigate(overrides = {}) {
 	const path = window.location.pathname.replace(/^\/panel/, "")
-	const params = new URLSearchParams()
-	params.set("page", pagination.page.toString())
-	if (currentTimeRange.value !== "24h") {
-		params.set("timeRange", currentTimeRange.value)
-	}
-	if (currentJobType.value) {
-		params.set("jobType", currentJobType.value)
-	}
-	if (currentSortBy.value !== "created_at") {
-		params.set("sortBy", currentSortBy.value)
-	}
-	if (currentSortOrder.value !== "desc") {
-		params.set("sortOrder", currentSortOrder.value)
-	}
-	app.$go(path + "?" + params.toString())
-}
-
-function refresh() {
-	// Don't refresh if drawer is open
-	if (!isDrawerOpen) {
-		app.$reload()
-	}
-}
-
-function selectTimeRange(range) {
-	timerange.value.close()
-	const path = window.location.pathname.replace(/^\/panel/, "")
-	const params = new URLSearchParams()
-	params.set("timeRange", range)
-	params.set("page", "1")
-	if (currentJobType.value) {
-		params.set("jobType", currentJobType.value)
-	}
-	if (currentSortBy.value !== "created_at") {
-		params.set("sortBy", currentSortBy.value)
-	}
-	if (currentSortOrder.value !== "desc") {
-		params.set("sortOrder", currentSortOrder.value)
-	}
-	app.$go(path + "?" + params.toString())
-}
-
-function selectJobType(type) {
-	jobtype.value.close()
-	const path = window.location.pathname.replace(/^\/panel/, "")
-	const params = new URLSearchParams()
-	if (currentTimeRange.value !== "24h") {
-		params.set("timeRange", currentTimeRange.value)
-	}
-	params.set("page", "1")
-	if (type) {
-		params.set("jobType", type)
-	}
-	if (currentSortBy.value !== "created_at") {
-		params.set("sortBy", currentSortBy.value)
-	}
-	if (currentSortOrder.value !== "desc") {
-		params.set("sortOrder", currentSortOrder.value)
-	}
-	app.$go(path + "?" + params.toString())
+	app.$go(path + buildQueryString(overrides))
 }
 
 function onHeader(event) {
-	console.log("onHeader event:", event)
-	console.log(
-		"Current sortBy:",
-		currentSortBy.value,
-		"sortOrder:",
-		currentSortOrder.value
-	)
-
 	const columnKey = event.columnIndex
-
-	console.log(
-		"Column clicked:",
-		columnKey,
-		"sortable:",
-		columns.value[columnKey]?.sortable
-	)
 
 	if (!columns.value[columnKey]?.sortable) {
 		return
@@ -383,10 +222,10 @@ function onHeader(event) {
 	let newSortBy = columnKey
 	let newSortOrder = "asc"
 
-	if (currentSortBy.value === columnKey) {
-		if (currentSortOrder.value === "asc") {
+	if (props.sortBy === columnKey) {
+		if (props.sortOrder === "asc") {
 			newSortOrder = "desc"
-		} else if (currentSortOrder.value === "desc") {
+		} else if (props.sortOrder === "desc") {
 			if (columnKey === "created_at") {
 				newSortOrder = "asc"
 			} else {
@@ -396,25 +235,7 @@ function onHeader(event) {
 		}
 	}
 
-	console.log("New sortBy:", newSortBy, "sortOrder:", newSortOrder)
-
-	const path = window.location.pathname.replace(/^\/panel/, "")
-	const params = new URLSearchParams()
-	if (currentTimeRange.value !== "24h") {
-		params.set("timeRange", currentTimeRange.value)
-	}
-	params.set("page", "1")
-	if (currentJobType.value) {
-		params.set("jobType", currentJobType.value)
-	}
-	if (newSortBy !== "created_at") {
-		params.set("sortBy", newSortBy)
-	}
-	if (newSortOrder !== "desc") {
-		params.set("sortOrder", newSortOrder)
-	}
-	console.log("Navigating to:", path + "?" + params.toString())
-	app.$go(path + "?" + params.toString())
+	navigate({ sortBy: newSortBy, sortOrder: newSortOrder, page: 1 })
 }
 </script>
 
@@ -431,12 +252,15 @@ function onHeader(event) {
 							size="sm"
 							@click="$refs.jobtype.toggle()"
 						>
-							{{ jobTypeLabel }}
+							{{
+								props.jobTypes.find((t) => t.value === props.jobType)?.label ??
+								$t("queues.jobType.all")
+							}}
 						</k-button>
 						<k-dropdown-content ref="jobtype" align-x="end">
 							<k-dropdown-item
-								:current="!currentJobType"
-								@click="selectJobType('')"
+								:current="!jobType"
+								@click="navigate({ jobType: undefined, page: 1 })"
 							>
 								{{ $t("queues.jobType.all") }}
 							</k-dropdown-item>
@@ -444,8 +268,8 @@ function onHeader(event) {
 							<k-dropdown-item
 								v-for="type in jobTypes"
 								:key="type.value"
-								:current="currentJobType === type.value"
-								@click="selectJobType(type.value)"
+								:current="jobType === type.value"
+								@click="navigate({ jobType: type.value, page: 1 })"
 							>
 								{{ type.label }}
 							</k-dropdown-item>
@@ -458,14 +282,17 @@ function onHeader(event) {
 							size="sm"
 							@click="$refs.timerange.toggle()"
 						>
-							{{ timeRangeLabel }}
+							{{
+								timeRanges.find((r) => r.value === props.timeRange)?.label ??
+								$t("queues.timeRange.last24Hours")
+							}}
 						</k-button>
 						<k-dropdown-content ref="timerange" align-x="end">
 							<k-dropdown-item
 								v-for="range in timeRanges"
 								:key="range.value"
-								:current="currentTimeRange === range.value"
-								@click="selectTimeRange(range.value)"
+								:current="timeRange === range.value"
+								@click="navigate({ timeRange: range.value, page: 1 })"
 							>
 								{{ range.label }}
 							</k-dropdown-item>
@@ -475,25 +302,26 @@ function onHeader(event) {
 						icon="refresh"
 						variant="filled"
 						size="sm"
-						@click="refresh"
+						@click="app.$reload()"
 					/>
 				</k-button-group>
 			</template>
 		</k-header>
 
-		<k-stats :reports="statsReports" size="large" />
+		<k-stats :reports="reports" size="large" />
 
-		<k-tabs :tab="currentStatus" :tabs="statusTabs" />
+		<k-tabs :tab="props.status" :tabs="tabs" />
 
-		<div v-if="loading" class="k-queues-loading">
-			<k-loader />
-		</div>
-
-		<k-empty v-else-if="currentJobs.length === 0" icon="list-bullet">
+		<k-empty v-if="transformedJobs.length === 0" icon="list-bullet">
 			{{ $t("queues.empty") }}
 		</k-empty>
 
-		<k-table v-else :columns="columns" :rows="currentJobs" @header="onHeader">
+		<k-table
+			v-else
+			:columns="columns"
+			:rows="transformedJobs"
+			@header="onHeader"
+		>
 			<template #header="{ columnIndex, label }">
 				<span
 					v-if="columns[columnIndex] && columns[columnIndex].sortable"
@@ -501,8 +329,8 @@ function onHeader(event) {
 				>
 					{{ label }}
 					<k-icon
-						v-if="columnIndex === currentSortBy"
-						:type="currentSortOrder === 'asc' ? 'angle-up' : 'angle-down'"
+						v-if="columnIndex === sortBy"
+						:type="sortOrder === 'asc' ? 'angle-up' : 'angle-down'"
 					/>
 				</span>
 				<span v-else>{{ label }}</span>
@@ -517,29 +345,22 @@ function onHeader(event) {
 		</k-table>
 
 		<footer
-			v-if="currentJobs.length > 0 && currentTotal > limit"
+			v-if="transformedJobs.length > 0 && total > limit"
 			class="k-bar k-collection-footer"
 		>
 			<k-pagination
-				:page="currentPage"
-				:total="currentTotal"
+				:page="page"
+				:total="total"
 				:limit="limit"
 				:details="true"
 				align="right"
-				@paginate="paginate"
+				@paginate="(pagination) => navigate({ page: pagination.page })"
 			/>
 		</footer>
 	</k-panel-inside>
 </template>
 
 <style>
-.k-queues-loading {
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	min-height: 20rem;
-}
-
 .k-queues-view {
 	.k-header {
 		margin-bottom: var(--spacing-3);

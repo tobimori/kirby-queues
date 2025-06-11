@@ -4,7 +4,7 @@ Queues is a simple but sophisticated queueing API for Kirby CMS inspired by Lara
 
 Its main goal is to provide plugin developers with a common way to implement background tasks without each plugin having to implement its own queueing system (of course you can also create background tasks unique to your Kirby site); e.g. [Kirby SEO](https://github.com/tobimori/kirby-seo) uses these for page audits, broken links checking; [DreamForm](https://github.com/tobimori/kirby-dreamform) allows you to run "actions" as background tasks to postpone long-running processes such as PDF generation or email sending.
 
-Its storage is powered by the Kirby Caching API, which allows us to easily support a variety of providers, such as File, Redis, and more out of the box.
+Its storage is powered by the Kirby Caching API, which allows us to easily support a variety of providers, such as File, Redis, and more out of the box. Theoretically, this also supports multiple workers running in parallel on multiple machines, albeit the plugin has not been tested with such a setup.
 
 Queues also supports scheduled jobs in the same worker process.
 
