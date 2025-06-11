@@ -54,17 +54,7 @@ defineEmits(["cancel", "crumb", "input", /*"submit",*/ "tab"])
 
 const panel = usePanel()
 
-const error = computed(() => props.job?.error || null)
-
-const payloadText = computed(() => {
-	return JSON.stringify(props.job?.payload || {}, null, 2)
-})
-
-const formatTimestamp = (timestamp) => {
-	return timestamp ? new Date(timestamp * 1000).toLocaleString() : "-"
-}
-
-const statsReports = computed(() => {
+const reports = computed(() => {
 	const status = props.job?.status || "pending"
 	const themes = {
 		pending: "warning",
@@ -89,18 +79,10 @@ const statsReports = computed(() => {
 		},
 		{
 			info: panel.t("queues.job.created"),
-			value: formatTimestamp(props.job?.created_at)
+			value: new Date(props.job?.created_at * 1000).toLocaleString()
 		}
 	]
 })
-
-const logs = computed(() => props.job?.logs || [])
-
-const formatLogTime = (timestamp) => {
-	if (!timestamp) return "-"
-	const date = new Date(timestamp * 1000)
-	return date.toLocaleTimeString()
-}
 </script>
 
 <template>
@@ -113,28 +95,36 @@ const formatLogTime = (timestamp) => {
 		@submit="$emit('cancel')"
 		@tab="$emit('tab', $event)"
 	>
-		<k-stats :reports="statsReports" size="small" />
+		<k-stats :reports="reports" size="small" />
 
-		<k-section :label="$t('queues.job.error')" v-if="error">
-			<k-box v-if="error" theme="negative" class="k-queues-job-error">
-				{{ error }}
+		<k-section :label="$t('queues.job.error')" v-if="props.job?.error">
+			<k-box theme="negative" class="k-queues-job-error">
+				{{ props.job?.error }}
 			</k-box>
 		</k-section>
 
-		<k-section :label="$t('queues.drawer.payload')" v-if="payloadText !== '[]'">
-			<k-code language="json">{{ payloadText }}</k-code>
+		<k-section
+			:label="$t('queues.drawer.payload')"
+			v-if="props.job?.payload !== '[]'"
+		>
+			<k-code language="json">{{
+				JSON.stringify(props.job?.payload || {}, null, 2)
+			}}</k-code>
 		</k-section>
 
-		<k-section :label="$t('queues.drawer.logs')" v-if="logs && logs.length > 0">
+		<k-section
+			:label="$t('queues.drawer.logs')"
+			v-if="props?.job?.logs?.length > 0"
+		>
 			<div class="k-queues-job-logs">
 				<div
-					v-for="(log, index) in logs"
+					v-for="(log, index) in props.job.logs"
 					:key="index"
 					class="k-queues-job-log-entry"
 					:data-level="log.level"
 				>
 					<time class="k-queues-job-log-time">{{
-						formatLogTime(log.timestamp)
+						new Date(log.timestamp * 1000).toLocaleString()
 					}}</time>
 					<span class="k-queues-job-log-level">{{ log.level }}</span>
 					<span class="k-queues-job-log-message">{{ log.message }}</span>
