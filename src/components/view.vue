@@ -530,12 +530,7 @@ function onHeader(event) {
 	console.log("Navigating to:", path + "?" + params.toString())
 	app.$go(path + "?" + params.toString())
 }
-
-function openJobDrawer(row) {
-	panel.drawer.open('queues/jobs/' + row.id)
-}
 </script>
-
 <style>
 .k-queues-loading {
 	display: flex;
@@ -544,34 +539,36 @@ function openJobDrawer(row) {
 	min-height: 20rem;
 }
 
-.k-queues-view .k-header {
-	margin-bottom: var(--spacing-3);
-}
+.k-queues-view {
+	.k-header {
+		margin-bottom: var(--spacing-3);
+	}
 
-.k-queues-view .k-stats {
-	margin-bottom: var(--spacing-6);
-}
+	.k-stats {
+		margin-bottom: var(--spacing-6);
+	}
 
-.k-queues-view .k-tabs {
-	margin-bottom: var(--spacing-6);
-}
+	.k-tabs {
+		margin-bottom: var(--spacing-6);
+	}
 
-.k-queues-view .k-table {
-	overflow: clip;
-}
+	.k-table {
+		overflow: clip;
+	}
 
-.k-queues-view .k-table-column {
-	cursor: default;
-}
+	.k-table-column {
+		cursor: default;
 
-.k-queues-view .k-table-column:has(span[data-sortable]) {
-	cursor: pointer;
-}
+		&:has(span[data-sortable]) {
+			cursor: pointer;
+		}
+	}
 
-.k-queues-view th.k-table-column > span {
-	display: inline-flex;
-	width: 100%;
-	align-items: center;
-	justify-content: space-between;
+	th.k-table-column > span {
+		display: inline-flex;
+		width: 100%;
+		align-items: center;
+		justify-content: space-between;
+	}
 }
 </style>

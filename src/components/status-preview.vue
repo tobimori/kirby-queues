@@ -3,7 +3,7 @@
 		class="k-queue-status-preview k-text-field-preview"
 		:data-status="value"
 	>
-		<k-icon :type="icon" />
+		<k-icon :type="ICONS[value] || 'circle'" />
 		<span class="k-queue-status-preview-text">
 			{{ $t(`queues.status.${value}`) }}
 		</span>
@@ -11,22 +11,16 @@
 </template>
 
 <script setup>
-import { computed } from "kirbyuse"
-
-const props = defineProps({
+defineProps({
 	value: String
 })
 
-const icon = computed(() => {
-	const icons = {
-		pending: "clock",
-		running: "play",
-		completed: "check",
-		failed: "alert"
-	}
-
-	return icons[props.value] || "circle"
-})
+const ICONS = {
+	pending: "clock",
+	running: "play",
+	completed: "check",
+	failed: "alert"
+}
 </script>
 
 <style>
