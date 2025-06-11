@@ -1,5 +1,5 @@
 <script setup>
-import { computed, ref, usePanel, useApp } from "kirbyuse"
+import { computed, usePanel, useApp } from "kirbyuse"
 
 const props = defineProps({
 	statistics: Object,
