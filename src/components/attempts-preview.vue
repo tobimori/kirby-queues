@@ -1,8 +1,5 @@
 <template>
-	<span
-		class="k-queue-attempts-preview k-text-field-preview"
-		:data-value="value"
-	>
+	<span class="k-queue-attempts-preview k-text-field-preview">
 		<template v-if="value > 0">
 			{{ value }}
 			<k-icon :title="title" type="refresh" />

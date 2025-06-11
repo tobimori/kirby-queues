@@ -23,11 +23,11 @@
 							<hr />
 							<k-dropdown-item
 								v-for="type in jobTypes"
-								:key="type"
-								:current="currentJobType === type"
-								@click="selectJobType(type)"
+								:key="type.value"
+								:current="currentJobType === type.value"
+								@click="selectJobType(type.value)"
 							>
-								{{ type }}
+								{{ type.label }}
 							</k-dropdown-item>
 						</k-dropdown-content>
 					</k-dropdown>
@@ -276,7 +276,11 @@ const timeRangeLabel = computed(() => {
 })
 
 const jobTypeLabel = computed(() => {
-	return currentJobType.value || panel.t("queues.jobType.all")
+	if (!currentJobType.value) {
+		return panel.t("queues.jobType.all")
+	}
+	const type = props.jobTypes.find(t => t.value === currentJobType.value)
+	return type ? type.label : currentJobType.value
 })
 
 const columns = computed(() => {

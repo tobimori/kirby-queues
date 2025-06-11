@@ -36,8 +36,8 @@ return [
 			});
 		};
 		
-		$getFilteredStats = function($timeRange) use ($filterByTimeRange) {
-			if (!$timeRange || $timeRange === 'all') {
+		$getFilteredStats = function($timeRange, $jobType = '') use ($filterByTimeRange) {
+			if (!$timeRange && !$jobType) {
 				return Queues::manager()->stats();
 			}
 			
@@ -54,12 +54,22 @@ return [
 			
 			foreach (['pending', 'running', 'completed', 'failed'] as $status) {
 				$jobs = Queues::manager()->getByStatus($status, 10000);
-				$filteredJobs = $filterByTimeRange($jobs, $timeRange);
-				$count = count($filteredJobs);
+				
+				if ($timeRange && $timeRange !== 'all') {
+					$jobs = $filterByTimeRange($jobs, $timeRange);
+				}
+				
+				if ($jobType) {
+					$jobs = array_filter($jobs, function($job) use ($jobType) {
+						return $job['type'] === $jobType;
+					});
+				}
+				
+				$count = count($jobs);
 				$stats['by_status'][$status] = $count;
 				$stats['total'] += $count;
 				
-				foreach ($filteredJobs as $job) {
+				foreach ($jobs as $job) {
 					$queue = $job['queue'] ?? 'default';
 					if (!isset($stats['by_queue'][$queue])) {
 						$stats['by_queue'][$queue] = 0;
@@ -104,8 +114,7 @@ return [
 						// filter by job type if specified
 						if ($jobType) {
 							$filteredJobs = array_filter($filteredJobs, function($job) use ($jobType) {
-								$jobName = $job['name'] ?? $job['type'];
-								return $jobName === $jobType;
+								return $job['type'] === $jobType;
 							});
 						}
 						
@@ -121,15 +130,24 @@ return [
 							}
 						});
 						
-						// get unique job names for filter
-						$jobTypes = array_unique(array_map(function($job) {
-							return $job['name'] ?? $job['type'];
-						}, $allJobs));
-						sort($jobTypes);
+						// get unique job types for filter
+						$jobTypesMap = [];
+						foreach ($allJobs as $job) {
+							$type = $job['type'];
+							$name = $job['name'] ?? $job['type'];
+							$jobTypesMap[$type] = $name;
+						}
+						$jobTypes = [];
+						foreach ($jobTypesMap as $type => $name) {
+							$jobTypes[] = ['value' => $type, 'label' => $name];
+						}
+						usort($jobTypes, function($a, $b) {
+							return strcasecmp($a['label'], $b['label']);
+						});
 						
 						$total = count($filteredJobs);
 						$jobs = array_slice($filteredJobs, $offset, $limit);
-						$stats = $getFilteredStats($timeRange);
+						$stats = $getFilteredStats($timeRange, $jobType);
 
 						return [
 							'component' => 'k-queues-view',
@@ -169,18 +187,26 @@ return [
 						$allJobs = Queues::manager()->getByStatus('pending', 10000);
 						
 						// get all job types for filter
-						$allTypes = array_unique(array_map(function($job) {
-							return $job['name'] ?? $job['type'];
-						}, $allJobs));
-						sort($allTypes);
+						$jobTypesMap = [];
+						foreach ($allJobs as $job) {
+							$type = $job['type'];
+							$name = $job['name'] ?? $job['type'];
+							$jobTypesMap[$type] = $name;
+						}
+						$allTypes = [];
+						foreach ($jobTypesMap as $type => $name) {
+							$allTypes[] = ['value' => $type, 'label' => $name];
+						}
+						usort($allTypes, function($a, $b) {
+							return strcasecmp($a['label'], $b['label']);
+						});
 						
 						$filteredJobs = $filterByTimeRange($allJobs, $timeRange);
 						
 						// filter by job type if specified
 						if ($jobType) {
 							$filteredJobs = array_filter($filteredJobs, function($job) use ($jobType) {
-								$jobName = $job['name'] ?? $job['type'];
-								return $jobName === $jobType;
+								return $job['type'] === $jobType;
 							});
 						}
 						
@@ -198,7 +224,7 @@ return [
 						
 						$total = count($filteredJobs);
 						$jobs = array_slice($filteredJobs, $offset, $limit);
-						$stats = $getFilteredStats($timeRange);
+						$stats = $getFilteredStats($timeRange, $jobType);
 
 						return [
 							'component' => 'k-queues-view',
@@ -238,18 +264,26 @@ return [
 						$allJobs = Queues::manager()->getByStatus('completed', 10000);
 						
 						// get all job types for filter
-						$allTypes = array_unique(array_map(function($job) {
-							return $job['name'] ?? $job['type'];
-						}, $allJobs));
-						sort($allTypes);
+						$jobTypesMap = [];
+						foreach ($allJobs as $job) {
+							$type = $job['type'];
+							$name = $job['name'] ?? $job['type'];
+							$jobTypesMap[$type] = $name;
+						}
+						$allTypes = [];
+						foreach ($jobTypesMap as $type => $name) {
+							$allTypes[] = ['value' => $type, 'label' => $name];
+						}
+						usort($allTypes, function($a, $b) {
+							return strcasecmp($a['label'], $b['label']);
+						});
 						
 						$filteredJobs = $filterByTimeRange($allJobs, $timeRange);
 						
 						// filter by job type if specified
 						if ($jobType) {
 							$filteredJobs = array_filter($filteredJobs, function($job) use ($jobType) {
-								$jobName = $job['name'] ?? $job['type'];
-								return $jobName === $jobType;
+								return $job['type'] === $jobType;
 							});
 						}
 						
@@ -267,7 +301,7 @@ return [
 						
 						$total = count($filteredJobs);
 						$jobs = array_slice($filteredJobs, $offset, $limit);
-						$stats = $getFilteredStats($timeRange);
+						$stats = $getFilteredStats($timeRange, $jobType);
 
 						return [
 							'component' => 'k-queues-view',
@@ -307,18 +341,26 @@ return [
 						$allJobs = Queues::manager()->getByStatus('running', 10000);
 						
 						// get all job types for filter
-						$allTypes = array_unique(array_map(function($job) {
-							return $job['name'] ?? $job['type'];
-						}, $allJobs));
-						sort($allTypes);
+						$jobTypesMap = [];
+						foreach ($allJobs as $job) {
+							$type = $job['type'];
+							$name = $job['name'] ?? $job['type'];
+							$jobTypesMap[$type] = $name;
+						}
+						$allTypes = [];
+						foreach ($jobTypesMap as $type => $name) {
+							$allTypes[] = ['value' => $type, 'label' => $name];
+						}
+						usort($allTypes, function($a, $b) {
+							return strcasecmp($a['label'], $b['label']);
+						});
 						
 						$filteredJobs = $filterByTimeRange($allJobs, $timeRange);
 						
 						// filter by job type if specified
 						if ($jobType) {
 							$filteredJobs = array_filter($filteredJobs, function($job) use ($jobType) {
-								$jobName = $job['name'] ?? $job['type'];
-								return $jobName === $jobType;
+								return $job['type'] === $jobType;
 							});
 						}
 						
@@ -336,7 +378,7 @@ return [
 						
 						$total = count($filteredJobs);
 						$jobs = array_slice($filteredJobs, $offset, $limit);
-						$stats = $getFilteredStats($timeRange);
+						$stats = $getFilteredStats($timeRange, $jobType);
 
 						return [
 							'component' => 'k-queues-view',
@@ -376,18 +418,26 @@ return [
 						$allJobs = Queues::manager()->getByStatus('failed', 10000);
 						
 						// get all job types for filter
-						$allTypes = array_unique(array_map(function($job) {
-							return $job['name'] ?? $job['type'];
-						}, $allJobs));
-						sort($allTypes);
+						$jobTypesMap = [];
+						foreach ($allJobs as $job) {
+							$type = $job['type'];
+							$name = $job['name'] ?? $job['type'];
+							$jobTypesMap[$type] = $name;
+						}
+						$allTypes = [];
+						foreach ($jobTypesMap as $type => $name) {
+							$allTypes[] = ['value' => $type, 'label' => $name];
+						}
+						usort($allTypes, function($a, $b) {
+							return strcasecmp($a['label'], $b['label']);
+						});
 						
 						$filteredJobs = $filterByTimeRange($allJobs, $timeRange);
 						
 						// filter by job type if specified
 						if ($jobType) {
 							$filteredJobs = array_filter($filteredJobs, function($job) use ($jobType) {
-								$jobName = $job['name'] ?? $job['type'];
-								return $jobName === $jobType;
+								return $job['type'] === $jobType;
 							});
 						}
 						
@@ -405,7 +455,7 @@ return [
 						
 						$total = count($filteredJobs);
 						$jobs = array_slice($filteredJobs, $offset, $limit);
-						$stats = $getFilteredStats($timeRange);
+						$stats = $getFilteredStats($timeRange, $jobType);
 
 						return [
 							'component' => 'k-queues-view',
