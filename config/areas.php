@@ -518,25 +518,18 @@ return [
 							'completed' => 'check',
 							'failed' => 'alert'
 						];
+
 						$icon = $icons[$status] ?? 'circle';
-						
+
 						return [
 							'component' => 'k-queues-job-drawer',
 							'props' => [
 								'job' => $jobArray,
 								'title' => $jobArray['name'] ?: $jobArray['type'],
 								'icon' => $icon,
-								'submitButton' => $jobArray['status'] === 'failed' ? t('queues.drawer.retry') : false
 							]
 						];
 					},
-					'submit' => function (string $id) {
-						$newId = Queues::manager()->retry($id);
-						return [
-							'event' => 'queues.job.retry',
-							'redirect' => false
-						];
-					}
 				]
 			]
 		];

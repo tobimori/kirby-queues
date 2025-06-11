@@ -50,7 +50,7 @@ const props = defineProps({
 	submitButton: [String, Boolean]
 })
 
-defineEmits(["cancel", "crumb", "input", "submit", "tab"])
+defineEmits(["cancel", "crumb", "input", /*"submit",*/ "tab"])
 
 const panel = usePanel()
 
@@ -110,7 +110,7 @@ const formatLogTime = (timestamp) => {
 		v-bind="$props"
 		@cancel="$emit('cancel')"
 		@crumb="$emit('crumb', $event)"
-		@submit="$emit('submit', value)"
+		@submit="$emit('cancel')"
 		@tab="$emit('tab', $event)"
 	>
 		<k-stats :reports="statsReports" size="small" />
