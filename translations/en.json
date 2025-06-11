@@ -5,7 +5,6 @@
 	"queues.scheduled": "Scheduled",
 	"queues.failed": "Failed",
 	"queues.metrics": "Metrics",
-	
 	"queues.job.id": "ID",
 	"queues.job.type": "Type",
 	"queues.job.name": "Name",
@@ -18,46 +17,37 @@
 	"queues.job.attempts": "Attempts",
 	"queues.job.progress": "Progress",
 	"queues.job.error": "Error",
-	
 	"queues.action.view": "View details",
 	"queues.action.retry": "Retry",
 	"queues.action.delete": "Delete",
 	"queues.action.run": "Run Now",
 	"queues.action.clear": "Clear",
 	"queues.action.refresh": "Refresh",
-	
 	"queues.drawer.details": "Details",
 	"queues.drawer.payload": "Payload",
 	"queues.drawer.logs": "Logs",
 	"queues.drawer.logs.empty": "No logs available for this job",
 	"queues.drawer.retry": "Retry Job",
-	
 	"queues.status.pending": "Pending",
 	"queues.status.running": "Running",
 	"queues.status.completed": "Completed",
 	"queues.status.failed": "Failed",
-	
 	"queues.empty": "No background tasks found",
 	"queues.worker.status": "Worker Status",
 	"queues.worker.running": "Worker is running",
 	"queues.worker.stopped": "Worker is stopped",
-	
 	"queues.total": "Total",
 	"queues.overview": "Overview",
 	"queues.all": "All Jobs",
-	
 	"queues.jobType.all": "All Types",
-	
 	"queues.timeRange.lastHour": "Last hour",
 	"queues.timeRange.last24Hours": "Last 24 hours",
 	"queues.timeRange.last7Days": "Last 7 days",
 	"queues.timeRange.last30Days": "Last 30 days",
 	"queues.timeRange.allTime": "All time",
-	
 	"queues.dialog.deleteJob": "Do you really want to delete this job?",
 	"queues.dialog.clearFailed": "Do you really want to clear all failed jobs? This action cannot be undone.",
 	"queues.dialog.removeScheduled": "Do you really want to remove this scheduled job?",
-	
 	"queues.notification.jobQueued": "Job queued for retry",
 	"queues.notification.jobDeleted": "Job deleted",
 	"queues.notification.failedCleared": "Failed jobs cleared",

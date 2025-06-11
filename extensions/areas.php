@@ -1,6 +1,5 @@
 <?php
 
-use Kirby\Cms\App;
 use tobimori\Queues\Queues;
 
 /**

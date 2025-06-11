@@ -7,19 +7,15 @@ use tobimori\Queues\Queues;
 @include_once __DIR__ . '/vendor/autoload.php';
 
 App::plugin('tobimori/queues', [
-	'caches' => [
-		'tobimori.queues' => true
-	],
 	'options' => [
-		// Enable the plugin cache
 		'cache' => true,
 
 		// queue configuration
-		'queues' => ['default', 'high', 'low'],  // Available queue names
-		'default' => 'default',  // Default queue name
+		'queues' => ['default', 'high', 'low'],  // available queue names
+		'default' => 'default',  // default queue name
 		'connection' => [
 			'driver' => 'cache',
-			'cache' => 'tobimori.queues'  // Use the plugin's cache namespace
+			'cache' => 'tobimori.queues'
 		],
 
 		// worker configuration
@@ -46,21 +42,30 @@ App::plugin('tobimori/queues', [
 	],
 
 	// cli commands
-	'commands' => require __DIR__ . '/config/commands.php',
-
-	// api routes
-	'api' => require __DIR__ . '/config/api.php',
+	'commands' => [
+		'queues:work' => require __DIR__ . '/extensions/commands/work.php',
+		'queues:status' => require __DIR__ . '/extensions/commands/status.php',
+		'queues:retry' => require __DIR__ . '/extensions/commands/retry.php',
+		'queues:clear' => require __DIR__ . '/extensions/commands/clear.php',
+		'queues:schedule' => require __DIR__ . '/extensions/commands/schedule.php',
+		'queues:example' => require __DIR__ . '/extensions/commands/example.php',
+		'queues:flush' => require __DIR__ . '/extensions/commands/flush.php'
+	],
 
 	// panel areas
-	'areas' => require __DIR__ . '/config/areas.php',
+	'areas' => require __DIR__ . '/extensions/areas.php',
 
 	// translations
 	'translations' => [
 		'en' => Json::read(__DIR__ . '/translations/en.json'),
-		'de' => Json::read(__DIR__ . '/translations/de.json')
+		'de' => Json::read(__DIR__ . '/translations/de.json'),
+		'fr' => Json::read(__DIR__ . '/translations/fr.json'),
+		'cs' => Json::read(__DIR__ . '/translations/cs.json'),
+		'nl' => Json::read(__DIR__ . '/translations/nl.json'),
+		'it' => Json::read(__DIR__ . '/translations/it.json'),
+		'es' => Json::read(__DIR__ . '/translations/es.json')
 	],
 
-	// hooks
 	'hooks' => [
 		'system.loadPlugins:after' => function () {
 			// initialize queue manager
