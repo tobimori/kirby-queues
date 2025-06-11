@@ -1,50 +1,3 @@
-<template>
-	<k-drawer
-		ref="drawer"
-		class="k-queues-job-drawer"
-		v-bind="$props"
-		@cancel="$emit('cancel')"
-		@crumb="$emit('crumb', $event)"
-		@submit="$emit('submit', value)"
-		@tab="$emit('tab', $event)"
-	>
-		<k-stats :reports="statsReports" size="small" />
-
-		<k-section :label="$t('queues.job.error')" v-if="error">
-			<k-box v-if="error" theme="negative" class="k-queues-job-error">
-				{{ error }}
-			</k-box>
-		</k-section>
-
-		<k-section :label="$t('queues.drawer.payload')" v-if="payloadText !== '[]'">
-			<k-code language="json">{{ payloadText }}</k-code>
-		</k-section>
-
-		<k-section :label="$t('queues.drawer.logs')" v-if="logs && logs.length > 0">
-			<div class="k-queues-job-logs">
-				<div
-					v-for="(log, index) in logs"
-					:key="index"
-					class="k-queues-job-log-entry"
-					:data-level="log.level"
-				>
-					<time class="k-queues-job-log-time">{{
-						formatLogTime(log.timestamp)
-					}}</time>
-					<span class="k-queues-job-log-level">{{ log.level }}</span>
-					<span class="k-queues-job-log-message">{{ log.message }}</span>
-				</div>
-			</div>
-		</k-section>
-
-		<k-section :label="$t('queues.drawer.logs')" v-else>
-			<k-empty icon="list-bullet">
-				{{ $t("queues.drawer.logs.empty") }}
-			</k-empty>
-		</k-section>
-	</k-drawer>
-</template>
-
 <script setup>
 import { computed, usePanel } from "kirbyuse"
 import { disabled, icon, id, options } from "kirbyuse/props"
@@ -149,6 +102,53 @@ const formatLogTime = (timestamp) => {
 	return date.toLocaleTimeString()
 }
 </script>
+
+<template>
+	<k-drawer
+		ref="drawer"
+		class="k-queues-job-drawer"
+		v-bind="$props"
+		@cancel="$emit('cancel')"
+		@crumb="$emit('crumb', $event)"
+		@submit="$emit('submit', value)"
+		@tab="$emit('tab', $event)"
+	>
+		<k-stats :reports="statsReports" size="small" />
+
+		<k-section :label="$t('queues.job.error')" v-if="error">
+			<k-box v-if="error" theme="negative" class="k-queues-job-error">
+				{{ error }}
+			</k-box>
+		</k-section>
+
+		<k-section :label="$t('queues.drawer.payload')" v-if="payloadText !== '[]'">
+			<k-code language="json">{{ payloadText }}</k-code>
+		</k-section>
+
+		<k-section :label="$t('queues.drawer.logs')" v-if="logs && logs.length > 0">
+			<div class="k-queues-job-logs">
+				<div
+					v-for="(log, index) in logs"
+					:key="index"
+					class="k-queues-job-log-entry"
+					:data-level="log.level"
+				>
+					<time class="k-queues-job-log-time">{{
+						formatLogTime(log.timestamp)
+					}}</time>
+					<span class="k-queues-job-log-level">{{ log.level }}</span>
+					<span class="k-queues-job-log-message">{{ log.message }}</span>
+				</div>
+			</div>
+		</k-section>
+
+		<k-section :label="$t('queues.drawer.logs')" v-else>
+			<k-empty icon="list-bullet">
+				{{ $t("queues.drawer.logs.empty") }}
+			</k-empty>
+		</k-section>
+	</k-drawer>
+</template>
 
 <style>
 .k-queues-job-drawer {

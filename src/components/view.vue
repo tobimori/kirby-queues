@@ -1,117 +1,3 @@
-<template>
-	<k-panel-inside class="k-queues-view">
-		<k-header>
-			{{ $t("queues.jobs") }}
-			<template #buttons>
-				<k-button-group>
-					<k-dropdown v-if="jobTypes.length > 0">
-						<k-button
-							icon="filter"
-							variant="filled"
-							size="sm"
-							@click="$refs.jobtype.toggle()"
-						>
-							{{ jobTypeLabel }}
-						</k-button>
-						<k-dropdown-content ref="jobtype" align-x="end">
-							<k-dropdown-item
-								:current="!currentJobType"
-								@click="selectJobType('')"
-							>
-								{{ $t("queues.jobType.all") }}
-							</k-dropdown-item>
-							<hr />
-							<k-dropdown-item
-								v-for="type in jobTypes"
-								:key="type.value"
-								:current="currentJobType === type.value"
-								@click="selectJobType(type.value)"
-							>
-								{{ type.label }}
-							</k-dropdown-item>
-						</k-dropdown-content>
-					</k-dropdown>
-					<k-dropdown>
-						<k-button
-							icon="calendar"
-							variant="filled"
-							size="sm"
-							@click="$refs.timerange.toggle()"
-						>
-							{{ timeRangeLabel }}
-						</k-button>
-						<k-dropdown-content ref="timerange" align-x="end">
-							<k-dropdown-item
-								v-for="range in timeRanges"
-								:key="range.value"
-								:current="currentTimeRange === range.value"
-								@click="selectTimeRange(range.value)"
-							>
-								{{ range.label }}
-							</k-dropdown-item>
-						</k-dropdown-content>
-					</k-dropdown>
-					<k-button
-						icon="refresh"
-						variant="filled"
-						size="sm"
-						@click="refresh"
-					/>
-				</k-button-group>
-			</template>
-		</k-header>
-
-		<k-stats :reports="statsReports" size="large" />
-
-		<k-tabs :tab="currentStatus" :tabs="statusTabs" />
-
-		<div v-if="loading" class="k-queues-loading">
-			<k-loader />
-		</div>
-
-		<k-empty v-else-if="currentJobs.length === 0" icon="list-bullet">
-			{{ $t("queues.empty") }}
-		</k-empty>
-
-		<k-table v-else :columns="columns" :rows="currentJobs" @header="onHeader">
-			<template #header="{ columnIndex, label }">
-				<span
-					v-if="columns[columnIndex] && columns[columnIndex].sortable"
-					data-sortable="true"
-				>
-					{{ label }}
-					<k-icon
-						v-if="columnIndex === currentSortBy"
-						:type="currentSortOrder === 'asc' ? 'angle-up' : 'angle-down'"
-					/>
-				</span>
-				<span v-else>{{ label }}</span>
-			</template>
-			<template #options="{ row }">
-				<k-button
-					icon="dots"
-					size="xs"
-					@click="panel.drawer.open('queues/jobs/' + row.id)"
-				/>
-			</template>
-		</k-table>
-
-		<footer
-			v-if="currentJobs.length > 0 && currentTotal > limit"
-			class="k-bar k-collection-footer"
-		>
-			<k-pagination
-				:page="currentPage"
-				:total="currentTotal"
-				:limit="limit"
-				:details="true"
-				align="right"
-				@paginate="paginate"
-			/>
-		</footer>
-	</k-panel-inside>
-</template>
-
 <script setup>
 import {
 	computed,
@@ -531,6 +417,121 @@ function onHeader(event) {
 	app.$go(path + "?" + params.toString())
 }
 </script>
+
+<template>
+	<k-panel-inside class="k-queues-view">
+		<k-header>
+			{{ $t("queues.jobs") }}
+			<template #buttons>
+				<k-button-group>
+					<k-dropdown v-if="jobTypes.length > 0">
+						<k-button
+							icon="filter"
+							variant="filled"
+							size="sm"
+							@click="$refs.jobtype.toggle()"
+						>
+							{{ jobTypeLabel }}
+						</k-button>
+						<k-dropdown-content ref="jobtype" align-x="end">
+							<k-dropdown-item
+								:current="!currentJobType"
+								@click="selectJobType('')"
+							>
+								{{ $t("queues.jobType.all") }}
+							</k-dropdown-item>
+							<hr />
+							<k-dropdown-item
+								v-for="type in jobTypes"
+								:key="type.value"
+								:current="currentJobType === type.value"
+								@click="selectJobType(type.value)"
+							>
+								{{ type.label }}
+							</k-dropdown-item>
+						</k-dropdown-content>
+					</k-dropdown>
+					<k-dropdown>
+						<k-button
+							icon="calendar"
+							variant="filled"
+							size="sm"
+							@click="$refs.timerange.toggle()"
+						>
+							{{ timeRangeLabel }}
+						</k-button>
+						<k-dropdown-content ref="timerange" align-x="end">
+							<k-dropdown-item
+								v-for="range in timeRanges"
+								:key="range.value"
+								:current="currentTimeRange === range.value"
+								@click="selectTimeRange(range.value)"
+							>
+								{{ range.label }}
+							</k-dropdown-item>
+						</k-dropdown-content>
+					</k-dropdown>
+					<k-button
+						icon="refresh"
+						variant="filled"
+						size="sm"
+						@click="refresh"
+					/>
+				</k-button-group>
+			</template>
+		</k-header>
+
+		<k-stats :reports="statsReports" size="large" />
+
+		<k-tabs :tab="currentStatus" :tabs="statusTabs" />
+
+		<div v-if="loading" class="k-queues-loading">
+			<k-loader />
+		</div>
+
+		<k-empty v-else-if="currentJobs.length === 0" icon="list-bullet">
+			{{ $t("queues.empty") }}
+		</k-empty>
+
+		<k-table v-else :columns="columns" :rows="currentJobs" @header="onHeader">
+			<template #header="{ columnIndex, label }">
+				<span
+					v-if="columns[columnIndex] && columns[columnIndex].sortable"
+					data-sortable="true"
+				>
+					{{ label }}
+					<k-icon
+						v-if="columnIndex === currentSortBy"
+						:type="currentSortOrder === 'asc' ? 'angle-up' : 'angle-down'"
+					/>
+				</span>
+				<span v-else>{{ label }}</span>
+			</template>
+			<template #options="{ row }">
+				<k-button
+					icon="dots"
+					size="xs"
+					@click="panel.drawer.open('queues/jobs/' + row.id)"
+				/>
+			</template>
+		</k-table>
+
+		<footer
+			v-if="currentJobs.length > 0 && currentTotal > limit"
+			class="k-bar k-collection-footer"
+		>
+			<k-pagination
+				:page="currentPage"
+				:total="currentTotal"
+				:limit="limit"
+				:details="true"
+				align="right"
+				@paginate="paginate"
+			/>
+		</footer>
+	</k-panel-inside>
+</template>
+
 <style>
 .k-queues-loading {
 	display: flex;

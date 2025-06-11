@@ -1,15 +1,3 @@
-<template>
-	<span
-		class="k-queue-status-preview k-text-field-preview"
-		:data-status="value"
-	>
-		<k-icon :type="ICONS[value] || 'circle'" />
-		<span class="k-queue-status-preview-text">
-			{{ $t(`queues.status.${value}`) }}
-		</span>
-	</span>
-</template>
-
 <script setup>
 defineProps({
 	value: String
@@ -22,6 +10,18 @@ const ICONS = {
 	failed: "alert"
 }
 </script>
+
+<template>
+	<span
+		class="k-queue-status-preview k-text-field-preview"
+		:data-status="value"
+	>
+		<k-icon :type="ICONS[value] || 'circle'" />
+		<span class="k-queue-status-preview-text">
+			{{ $t(`queues.status.${value}`) }}
+		</span>
+	</span>
+</template>
 
 <style>
 .k-queue-status-preview {

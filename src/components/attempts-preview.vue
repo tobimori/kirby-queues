@@ -1,3 +1,12 @@
+<script setup>
+defineProps({
+	value: {
+		type: Number,
+		default: 0
+	}
+})
+</script>
+
 <template>
 	<span class="k-queue-attempts-preview k-text-field-preview">
 		<template v-if="value > 0">
@@ -7,15 +16,6 @@
 		<p v-else>–</p>
 	</span>
 </template>
-
-<script setup>
-defineProps({
-	value: {
-		type: Number,
-		default: 0
-	}
-})
-</script>
 
 <style>
 .k-queue-attempts-preview {
