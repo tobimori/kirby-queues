@@ -166,13 +166,7 @@ class Worker
 
 		try {
 			// set up timeout if configured
-			$timeout = $job->timeout();
-			if ($timeout > 0 && function_exists('pcntl_alarm')) {
-				pcntl_signal(SIGALRM, function () use ($job) {
-					throw new \RuntimeException("Job {$job->id()} timed out after {$job->timeout()} seconds");
-				});
-				pcntl_alarm($timeout);
-			}
+			$this->setupTimeout($job);
 
 			// Pass CLI instance to job for output
 			$job->setCli($this->cli);
@@ -184,9 +178,7 @@ class Worker
 			$this->manager->addJobLog($job->id(), 'info', 'Job completed successfully');
 
 			// clear timeout
-			if ($timeout > 0 && function_exists('pcntl_alarm')) {
-				pcntl_alarm(0);
-			}
+			$this->clearTimeout($job);
 
 			// mark as completed
 			$this->manager->markCompleted($job->id());
@@ -203,9 +195,7 @@ class Worker
 			return $result;
 		} catch (\Exception $e) {
 			// clear timeout
-			if (isset($timeout) && $timeout > 0 && function_exists('pcntl_alarm')) {
-				pcntl_alarm(0);
-			}
+			$this->clearTimeout($job);
 
 			return $this->handleFailedJob($job, $e, $startTime);
 		}
@@ -375,6 +365,31 @@ class Worker
 	}
 
 	/**
+	 * Setup timeout for job execution
+	 */
+	protected function setupTimeout(Job $job): void
+	{
+		$timeout = $job->timeout();
+		if ($timeout > 0 && function_exists('pcntl_alarm')) {
+			pcntl_signal(SIGALRM, function () use ($job) {
+				throw new \RuntimeException("Job {$job->id()} timed out after {$job->timeout()} seconds");
+			});
+			pcntl_alarm($timeout);
+		}
+	}
+
+	/**
+	 * Clear timeout after job execution
+	 */
+	protected function clearTimeout(Job $job): void
+	{
+		$timeout = $job->timeout();
+		if ($timeout > 0 && function_exists('pcntl_alarm')) {
+			pcntl_alarm(0);
+		}
+	}
+
+	/**
 	 * Output message to CLI
 	 */
 	protected function output(string $message, string $type = 'info'): void
@@ -384,14 +399,23 @@ class Worker
 		}
 
 		$timestamp = date('d.m.Y H:i:s:');
+		$typeConfigs = [
+			'success' => ['color' => 'green', 'label' => 'SUCCESS'],
+			'error' => ['color' => 'red', 'label' => 'ERROR   '],
+			'warning' => ['color' => 'yellow', 'label' => 'WARNING'],
+			'debug' => ['color' => 'dim', 'label' => 'DEBUG   '],
+			'info' => ['color' => 'blue', 'label' => 'INFO    ']
+		];
 
-		match ($type) {
-			'success' => $this->cli->out("<green>{$timestamp}</green>  <bold><green>SUCCESS</green></bold>  {$message}"),
-			'error' => $this->cli->out("<red>{$timestamp}</red>  <bold><red>ERROR</red></bold>    {$message}"),
-			'warning' => $this->cli->out("<yellow>{$timestamp}</yellow>  <bold><yellow>WARNING</yellow></bold>  {$message}"),
-			'debug' => $this->cli->out("<dim>{$timestamp}  DEBUG    {$message}</dim>"),
-			default => $this->cli->out("<blue>{$timestamp}</blue>  <bold><blue>INFO</blue></bold>     {$message}")
-		};
+		$config = $typeConfigs[$type] ?? $typeConfigs['info'];
+		$color = $config['color'];
+		$label = $config['label'];
+
+		if ($type === 'debug') {
+			$this->cli->out("<dim>{$timestamp}  {$label}  {$message}</dim>");
+		} else {
+			$this->cli->out("<{$color}>{$timestamp}</{$color}>  <bold><{$color}>{$label}</{$color}></bold>  {$message}");
+		}
 	}
 
 	/**

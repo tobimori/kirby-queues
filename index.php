@@ -48,7 +48,6 @@ App::plugin('tobimori/queues', [
 		'queues:retry' => require __DIR__ . '/extensions/commands/retry.php',
 		'queues:clear' => require __DIR__ . '/extensions/commands/clear.php',
 		'queues:schedule' => require __DIR__ . '/extensions/commands/schedule.php',
-		'queues:example' => require __DIR__ . '/extensions/commands/example.php',
 		'queues:flush' => require __DIR__ . '/extensions/commands/flush.php'
 	],
 
@@ -70,12 +69,6 @@ App::plugin('tobimori/queues', [
 		'system.loadPlugins:after' => function () {
 			// initialize queue manager
 			Queues::init();
-
-			// register example jobs (for demonstration purposes)
-			Queues::register([
-				\tobimori\Queues\Examples\ExampleJob::class,
-				\tobimori\Queues\Examples\FailingExampleJob::class
-			]);
 		}
 	]
 ]);

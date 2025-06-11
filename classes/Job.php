@@ -265,37 +265,6 @@ abstract class Job
 		}
 	}
 
-	/**
-	 * Log an info message
-	 */
-	protected function logInfo(string $message, array $context = []): void
-	{
-		$this->log('info', $message, $context);
-	}
-
-	/**
-	 * Log an error message
-	 */
-	protected function logError(string $message, array $context = []): void
-	{
-		$this->log('error', $message, $context);
-	}
-
-	/**
-	 * Log a warning message
-	 */
-	protected function logWarning(string $message, array $context = []): void
-	{
-		$this->log('warning', $message, $context);
-	}
-
-	/**
-	 * Log a debug message
-	 */
-	protected function logDebug(string $message, array $context = []): void
-	{
-		$this->log('debug', $message, $context);
-	}
 
 	/**
 	 * Get current progress

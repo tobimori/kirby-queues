@@ -49,30 +49,7 @@ class Manager
 	 */
 	public function push(string|Job $job, array $payload = [], ?string $queue = null): string
 	{
-		// create job instance if string provided
-		if (is_string($job)) {
-			// check if it's a class name or job type
-			if (class_exists($job) && is_subclass_of($job, Job::class)) {
-				// it's a class name, create instance directly
-				$instance = new $job();
-				$instance->setPayload($payload);
-				
-				// ensure the job type is registered
-				$type = $instance->type();
-				if (Queues::job($type) === null) {
-					Queues::register($job);
-				}
-				
-				$job = $instance;
-			} else {
-				// it's a job type, use the registry
-				$job = Queues::createJob($job, $payload);
-			}
-		} else {
-			$job->setPayload($payload);
-		}
-
-		// generate job ID
+		$job = $this->prepareJob($job, $payload);
 		$jobId = $this->generateJobId();
 		$job->setId($jobId);
 
@@ -100,30 +77,7 @@ class Manager
 	 */
 	public function later(int $delay, string|Job $job, array $payload = [], ?string $queue = null): string
 	{
-		// create job instance if string provided
-		if (is_string($job)) {
-			// check if it's a class name or job type
-			if (class_exists($job) && is_subclass_of($job, Job::class)) {
-				// it's a class name, create instance directly
-				$instance = new $job();
-				$instance->setPayload($payload);
-				
-				// ensure the job type is registered
-				$type = $instance->type();
-				if (Queues::job($type) === null) {
-					Queues::register($job);
-				}
-				
-				$job = $instance;
-			} else {
-				// it's a job type, use the registry
-				$job = Queues::createJob($job, $payload);
-			}
-		} else {
-			$job->setPayload($payload);
-		}
-
-		// generate job ID
+		$job = $this->prepareJob($job, $payload);
 		$jobId = $this->generateJobId();
 		$job->setId($jobId);
 
@@ -360,6 +314,37 @@ class Manager
 	protected function defaultQueue(): string
 	{
 		return $this->kirby->option('tobimori.queues.default', 'default');
+	}
+
+	/**
+	 * Prepare job instance from string or Job object
+	 */
+	protected function prepareJob(string|Job $job, array $payload): Job
+	{
+		// create job instance if string provided
+		if (is_string($job)) {
+			// check if it's a class name or job type
+			if (class_exists($job) && is_subclass_of($job, Job::class)) {
+				// it's a class name, create instance directly
+				$instance = new $job();
+				$instance->setPayload($payload);
+				
+				// ensure the job type is registered
+				$type = $instance->type();
+				if (Queues::job($type) === null) {
+					Queues::register($job);
+				}
+				
+				$job = $instance;
+			} else {
+				// it's a job type, use the registry
+				$job = Queues::createJob($job, $payload);
+			}
+		} else {
+			$job->setPayload($payload);
+		}
+		
+		return $job;
 	}
 
 	/**

@@ -184,20 +184,10 @@ class Queues
 	public static function registeredQueues(): array
 	{
 		// Get config queues
-		try {
-			$app = App::instance();
-			$configQueues = $app->option('tobimori.queues.queues', ['default', 'high', 'low']);
-		} catch (\Exception $e) {
-			$configQueues = ['default', 'high', 'low'];
-		}
+		$configQueues = App::instance()?->option('tobimori.queues.queues') ?? ['default', 'high', 'low'];
 		
-		// Merge config queues with dynamically registered queues
-		$allQueues = array_unique(array_merge($configQueues, static::$queues));
-		
-		// Always ensure default queue is included
-		if (!in_array('default', $allQueues)) {
-			array_unshift($allQueues, 'default');
-		}
+		// Merge config queues with dynamically registered queues, ensuring 'default' is always first
+		$allQueues = array_unique(array_merge(['default'], $configQueues, static::$queues));
 		
 		return array_values($allQueues);
 	}
