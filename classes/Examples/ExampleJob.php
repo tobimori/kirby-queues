@@ -34,17 +34,25 @@ class ExampleJob extends Job
         $duration = $this->payload['duration'] ?? 2;
         
         // Log the start
-        error_log("[Example Job {$this->id()}] Starting: {$message}");
+        $this->logInfo("Starting job with message: {$message}", [
+            'duration' => $duration
+        ]);
         
         // Simulate work with progress updates
         for ($i = 1; $i <= $duration; $i++) {
             $progress = ($i / $duration) * 100;
             $this->progress($progress, "Step {$i} of {$duration}");
+            
+            // Log each step
+            $this->logDebug("Processing step {$i}/{$duration}", [
+                'progress' => $progress
+            ]);
+            
             sleep(1);
         }
         
         // Log completion
-        error_log("[Example Job {$this->id()}] Completed!");
+        $this->logInfo("Job completed successfully");
     }
     
     /**

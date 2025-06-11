@@ -73,14 +73,7 @@
 			{{ $t("queues.empty") }}
 		</k-empty>
 
-		<k-table
-			v-else
-			:columns="columns"
-			:rows="currentJobs"
-			:options="jobOptions"
-			@header="onHeader"
-			@option="onAction"
-		>
+		<k-table v-else :columns="columns" :rows="currentJobs" @header="onHeader">
 			<template #header="{ columnIndex, label }">
 				<span
 					v-if="columns[columnIndex] && columns[columnIndex].sortable"
@@ -93,6 +86,13 @@
 					/>
 				</span>
 				<span v-else>{{ label }}</span>
+			</template>
+			<template #options="{ row }">
+				<k-button
+					icon="dots"
+					size="xs"
+					@click="panel.drawer.open('queues/jobs/' + row.id)"
+				/>
 			</template>
 		</k-table>
 
@@ -172,6 +172,7 @@ const currentSortBy = ref(props.sortBy)
 const currentSortOrder = ref(props.sortOrder)
 const currentJobType = ref(props.jobType)
 let refreshInterval = null
+let isDrawerOpen = false
 
 const jobtype = ref(null)
 const timerange = ref(null)
@@ -279,7 +280,7 @@ const jobTypeLabel = computed(() => {
 	if (!currentJobType.value) {
 		return panel.t("queues.jobType.all")
 	}
-	const type = props.jobTypes.find(t => t.value === currentJobType.value)
+	const type = props.jobTypes.find((t) => t.value === currentJobType.value)
 	return type ? type.label : currentJobType.value
 })
 
@@ -321,30 +322,6 @@ const columns = computed(() => {
 	}
 
 	return cols
-})
-
-const jobOptions = computed(() => {
-	return (row) => {
-		const options = []
-
-		if (props.status === "failed") {
-			options.push({
-				icon: "refresh",
-				text: panel.t("queues.action.retry"),
-				click: () => onAction(row, "retry")
-			})
-		}
-
-		if (props.status !== "running") {
-			options.push({
-				icon: "trash",
-				text: panel.t("queues.action.delete"),
-				click: () => onAction(row, "delete")
-			})
-		}
-
-		return options
-	}
 })
 
 watch(
@@ -431,35 +408,6 @@ function transformJobs(jobs) {
 	}))
 }
 
-async function onAction(item, action) {
-	if (action === "retry") {
-		try {
-			await api.post(`queues/jobs/${item.id}/retry`)
-			panel.notification.success("Job queued for retry")
-			refresh()
-		} catch (error) {
-			panel.notification.error(error.message)
-		}
-	} else if (action === "delete") {
-		try {
-			await panel.dialog.open({
-				component: "k-remove-dialog",
-				props: {
-					text: "Do you really want to delete this job?"
-				}
-			})
-
-			await api.delete(`queues/jobs/${item.id}`)
-			panel.notification.success("Job deleted")
-			refresh()
-		} catch (error) {
-			if (error.message !== "The dialog has been canceled") {
-				panel.notification.error(error.message)
-			}
-		}
-	}
-}
-
 function paginate(pagination) {
 	const path = window.location.pathname.replace(/^\/panel/, "")
 	const params = new URLSearchParams()
@@ -480,7 +428,10 @@ function paginate(pagination) {
 }
 
 function refresh() {
-	app.$reload()
+	// Don't refresh if drawer is open
+	if (!isDrawerOpen) {
+		app.$reload()
+	}
 }
 
 function selectTimeRange(range) {
@@ -578,6 +529,10 @@ function onHeader(event) {
 	}
 	console.log("Navigating to:", path + "?" + params.toString())
 	app.$go(path + "?" + params.toString())
+}
+
+function openJobDrawer(row) {
+	panel.drawer.open('queues/jobs/' + row.id)
 }
 </script>
 

@@ -227,6 +227,48 @@ abstract class Job
 	}
 
 	/**
+	 * Add a log entry
+	 */
+	protected function log(string $level, string $message, array $context = []): void
+	{
+		if ($this->id !== null) {
+			Queues::manager()->addJobLog($this->id, $level, $message, $context);
+		}
+	}
+
+	/**
+	 * Log an info message
+	 */
+	protected function logInfo(string $message, array $context = []): void
+	{
+		$this->log('info', $message, $context);
+	}
+
+	/**
+	 * Log an error message
+	 */
+	protected function logError(string $message, array $context = []): void
+	{
+		$this->log('error', $message, $context);
+	}
+
+	/**
+	 * Log a warning message
+	 */
+	protected function logWarning(string $message, array $context = []): void
+	{
+		$this->log('warning', $message, $context);
+	}
+
+	/**
+	 * Log a debug message
+	 */
+	protected function logDebug(string $message, array $context = []): void
+	{
+		$this->log('debug', $message, $context);
+	}
+
+	/**
 	 * Get current progress
 	 */
 	public function getProgress(): float

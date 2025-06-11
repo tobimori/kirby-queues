@@ -17,12 +17,20 @@
 	"queues.job.failed": "Failed",
 	"queues.job.attempts": "Attempts",
 	"queues.job.progress": "Progress",
+	"queues.job.error": "Error",
 	
+	"queues.action.view": "View details",
 	"queues.action.retry": "Retry",
 	"queues.action.delete": "Delete",
 	"queues.action.run": "Run Now",
 	"queues.action.clear": "Clear",
 	"queues.action.refresh": "Refresh",
+	
+	"queues.drawer.details": "Details",
+	"queues.drawer.payload": "Payload",
+	"queues.drawer.logs": "Logs",
+	"queues.drawer.logs.empty": "No logs available for this job",
+	"queues.drawer.retry": "Retry Job",
 	
 	"queues.status.pending": "Pending",
 	"queues.status.running": "Running",

@@ -8,14 +8,14 @@ use tobimori\Queues\Queues;
  */
 return [
 	'queues' => function () {
-		$filterByTimeRange = function($jobs, $timeRange) {
+		$filterByTimeRange = function ($jobs, $timeRange) {
 			if (!$timeRange || $timeRange === 'all') {
 				return $jobs;
 			}
-			
+
 			$now = time();
 			$cutoff = $now;
-			
+
 			switch ($timeRange) {
 				case '1h':
 					$cutoff = $now - 3600;
@@ -30,17 +30,17 @@ return [
 					$cutoff = $now - 2592000;
 					break;
 			}
-			
-			return array_filter($jobs, function($job) use ($cutoff) {
+
+			return array_filter($jobs, function ($job) use ($cutoff) {
 				return ($job['created_at'] ?? 0) >= $cutoff;
 			});
 		};
-		
-		$getFilteredStats = function($timeRange, $jobType = '') use ($filterByTimeRange) {
+
+		$getFilteredStats = function ($timeRange, $jobType = '') use ($filterByTimeRange) {
 			if (!$timeRange && !$jobType) {
 				return Queues::manager()->stats();
 			}
-			
+
 			$stats = [
 				'total' => 0,
 				'by_status' => [
@@ -51,24 +51,24 @@ return [
 				],
 				'by_queue' => []
 			];
-			
+
 			foreach (['pending', 'running', 'completed', 'failed'] as $status) {
 				$jobs = Queues::manager()->getByStatus($status, 10000);
-				
+
 				if ($timeRange && $timeRange !== 'all') {
 					$jobs = $filterByTimeRange($jobs, $timeRange);
 				}
-				
+
 				if ($jobType) {
-					$jobs = array_filter($jobs, function($job) use ($jobType) {
+					$jobs = array_filter($jobs, function ($job) use ($jobType) {
 						return $job['type'] === $jobType;
 					});
 				}
-				
+
 				$count = count($jobs);
 				$stats['by_status'][$status] = $count;
 				$stats['total'] += $count;
-				
+
 				foreach ($jobs as $job) {
 					$queue = $job['queue'] ?? 'default';
 					if (!isset($stats['by_queue'][$queue])) {
@@ -77,10 +77,10 @@ return [
 					$stats['by_queue'][$queue]++;
 				}
 			}
-			
+
 			return $stats;
 		};
-		
+
 		return [
 			'label' => t('queues.title'),
 			'icon' => 'layers',
@@ -97,7 +97,7 @@ return [
 						$jobType = get('jobType', '');
 						$limit = 50;
 						$offset = ($page - 1) * $limit;
-						
+
 						// get all jobs from all statuses
 						$allJobs = [];
 						foreach (['pending', 'running', 'completed', 'failed'] as $status) {
@@ -107,29 +107,29 @@ return [
 							}
 							$allJobs = array_merge($allJobs, $statusJobs);
 						}
-						
+
 						// filter by time range
 						$filteredJobs = $filterByTimeRange($allJobs, $timeRange);
-						
+
 						// filter by job type if specified
 						if ($jobType) {
-							$filteredJobs = array_filter($filteredJobs, function($job) use ($jobType) {
+							$filteredJobs = array_filter($filteredJobs, function ($job) use ($jobType) {
 								return $job['type'] === $jobType;
 							});
 						}
-						
+
 						// sort jobs
-						usort($filteredJobs, function($a, $b) use ($sortBy, $sortOrder) {
+						usort($filteredJobs, function ($a, $b) use ($sortBy, $sortOrder) {
 							$aVal = $a[$sortBy] ?? 0;
 							$bVal = $b[$sortBy] ?? 0;
-							
+
 							if ($sortOrder === 'asc') {
 								return $aVal <=> $bVal;
 							} else {
 								return $bVal <=> $aVal;
 							}
 						});
-						
+
 						// get unique job types for filter
 						$jobTypesMap = [];
 						foreach ($allJobs as $job) {
@@ -141,10 +141,10 @@ return [
 						foreach ($jobTypesMap as $type => $name) {
 							$jobTypes[] = ['value' => $type, 'label' => $name];
 						}
-						usort($jobTypes, function($a, $b) {
+						usort($jobTypes, function ($a, $b) {
 							return strcasecmp($a['label'], $b['label']);
 						});
-						
+
 						$total = count($filteredJobs);
 						$jobs = array_slice($filteredJobs, $offset, $limit);
 						$stats = $getFilteredStats($timeRange, $jobType);
@@ -183,9 +183,9 @@ return [
 						$jobType = get('jobType', '');
 						$limit = 50;
 						$offset = ($page - 1) * $limit;
-						
+
 						$allJobs = Queues::manager()->getByStatus('pending', 10000);
-						
+
 						// get all job types for filter
 						$jobTypesMap = [];
 						foreach ($allJobs as $job) {
@@ -197,31 +197,31 @@ return [
 						foreach ($jobTypesMap as $type => $name) {
 							$allTypes[] = ['value' => $type, 'label' => $name];
 						}
-						usort($allTypes, function($a, $b) {
+						usort($allTypes, function ($a, $b) {
 							return strcasecmp($a['label'], $b['label']);
 						});
-						
+
 						$filteredJobs = $filterByTimeRange($allJobs, $timeRange);
-						
+
 						// filter by job type if specified
 						if ($jobType) {
-							$filteredJobs = array_filter($filteredJobs, function($job) use ($jobType) {
+							$filteredJobs = array_filter($filteredJobs, function ($job) use ($jobType) {
 								return $job['type'] === $jobType;
 							});
 						}
-						
+
 						// sort jobs
-						usort($filteredJobs, function($a, $b) use ($sortBy, $sortOrder) {
+						usort($filteredJobs, function ($a, $b) use ($sortBy, $sortOrder) {
 							$aVal = $a[$sortBy] ?? 0;
 							$bVal = $b[$sortBy] ?? 0;
-							
+
 							if ($sortOrder === 'asc') {
 								return $aVal <=> $bVal;
 							} else {
 								return $bVal <=> $aVal;
 							}
 						});
-						
+
 						$total = count($filteredJobs);
 						$jobs = array_slice($filteredJobs, $offset, $limit);
 						$stats = $getFilteredStats($timeRange, $jobType);
@@ -260,9 +260,9 @@ return [
 						$jobType = get('jobType', '');
 						$limit = 50;
 						$offset = ($page - 1) * $limit;
-						
+
 						$allJobs = Queues::manager()->getByStatus('completed', 10000);
-						
+
 						// get all job types for filter
 						$jobTypesMap = [];
 						foreach ($allJobs as $job) {
@@ -274,31 +274,31 @@ return [
 						foreach ($jobTypesMap as $type => $name) {
 							$allTypes[] = ['value' => $type, 'label' => $name];
 						}
-						usort($allTypes, function($a, $b) {
+						usort($allTypes, function ($a, $b) {
 							return strcasecmp($a['label'], $b['label']);
 						});
-						
+
 						$filteredJobs = $filterByTimeRange($allJobs, $timeRange);
-						
+
 						// filter by job type if specified
 						if ($jobType) {
-							$filteredJobs = array_filter($filteredJobs, function($job) use ($jobType) {
+							$filteredJobs = array_filter($filteredJobs, function ($job) use ($jobType) {
 								return $job['type'] === $jobType;
 							});
 						}
-						
+
 						// sort jobs
-						usort($filteredJobs, function($a, $b) use ($sortBy, $sortOrder) {
+						usort($filteredJobs, function ($a, $b) use ($sortBy, $sortOrder) {
 							$aVal = $a[$sortBy] ?? 0;
 							$bVal = $b[$sortBy] ?? 0;
-							
+
 							if ($sortOrder === 'asc') {
 								return $aVal <=> $bVal;
 							} else {
 								return $bVal <=> $aVal;
 							}
 						});
-						
+
 						$total = count($filteredJobs);
 						$jobs = array_slice($filteredJobs, $offset, $limit);
 						$stats = $getFilteredStats($timeRange, $jobType);
@@ -337,9 +337,9 @@ return [
 						$jobType = get('jobType', '');
 						$limit = 50;
 						$offset = ($page - 1) * $limit;
-						
+
 						$allJobs = Queues::manager()->getByStatus('running', 10000);
-						
+
 						// get all job types for filter
 						$jobTypesMap = [];
 						foreach ($allJobs as $job) {
@@ -351,31 +351,31 @@ return [
 						foreach ($jobTypesMap as $type => $name) {
 							$allTypes[] = ['value' => $type, 'label' => $name];
 						}
-						usort($allTypes, function($a, $b) {
+						usort($allTypes, function ($a, $b) {
 							return strcasecmp($a['label'], $b['label']);
 						});
-						
+
 						$filteredJobs = $filterByTimeRange($allJobs, $timeRange);
-						
+
 						// filter by job type if specified
 						if ($jobType) {
-							$filteredJobs = array_filter($filteredJobs, function($job) use ($jobType) {
+							$filteredJobs = array_filter($filteredJobs, function ($job) use ($jobType) {
 								return $job['type'] === $jobType;
 							});
 						}
-						
+
 						// sort jobs
-						usort($filteredJobs, function($a, $b) use ($sortBy, $sortOrder) {
+						usort($filteredJobs, function ($a, $b) use ($sortBy, $sortOrder) {
 							$aVal = $a[$sortBy] ?? 0;
 							$bVal = $b[$sortBy] ?? 0;
-							
+
 							if ($sortOrder === 'asc') {
 								return $aVal <=> $bVal;
 							} else {
 								return $bVal <=> $aVal;
 							}
 						});
-						
+
 						$total = count($filteredJobs);
 						$jobs = array_slice($filteredJobs, $offset, $limit);
 						$stats = $getFilteredStats($timeRange, $jobType);
@@ -414,9 +414,9 @@ return [
 						$jobType = get('jobType', '');
 						$limit = 50;
 						$offset = ($page - 1) * $limit;
-						
+
 						$allJobs = Queues::manager()->getByStatus('failed', 10000);
-						
+
 						// get all job types for filter
 						$jobTypesMap = [];
 						foreach ($allJobs as $job) {
@@ -428,31 +428,31 @@ return [
 						foreach ($jobTypesMap as $type => $name) {
 							$allTypes[] = ['value' => $type, 'label' => $name];
 						}
-						usort($allTypes, function($a, $b) {
+						usort($allTypes, function ($a, $b) {
 							return strcasecmp($a['label'], $b['label']);
 						});
-						
+
 						$filteredJobs = $filterByTimeRange($allJobs, $timeRange);
-						
+
 						// filter by job type if specified
 						if ($jobType) {
-							$filteredJobs = array_filter($filteredJobs, function($job) use ($jobType) {
+							$filteredJobs = array_filter($filteredJobs, function ($job) use ($jobType) {
 								return $job['type'] === $jobType;
 							});
 						}
-						
+
 						// sort jobs
-						usort($filteredJobs, function($a, $b) use ($sortBy, $sortOrder) {
+						usort($filteredJobs, function ($a, $b) use ($sortBy, $sortOrder) {
 							$aVal = $a[$sortBy] ?? 0;
 							$bVal = $b[$sortBy] ?? 0;
-							
+
 							if ($sortOrder === 'asc') {
 								return $aVal <=> $bVal;
 							} else {
 								return $bVal <=> $aVal;
 							}
 						});
-						
+
 						$total = count($filteredJobs);
 						$jobs = array_slice($filteredJobs, $offset, $limit);
 						$stats = $getFilteredStats($timeRange, $jobType);
@@ -494,6 +494,47 @@ return [
 								]
 							],
 							'props' => []
+						];
+					}
+				]
+			],
+			'drawers' => [
+				[
+					'pattern' => 'queues/jobs/(:any)',
+					'load' => function (string $id) {
+						// Get the raw job data from storage which includes status
+						$storage = Queues::manager()->storage();
+						$jobArray = $storage->get($id);
+
+						if (!$jobArray) {
+							throw new \Kirby\Exception\NotFoundException('Job not found');
+						}
+
+						// Get status icon
+						$status = $jobArray['status'] ?? 'pending';
+						$icons = [
+							'pending' => 'clock',
+							'running' => 'play',
+							'completed' => 'check',
+							'failed' => 'alert'
+						];
+						$icon = $icons[$status] ?? 'circle';
+						
+						return [
+							'component' => 'k-queues-job-drawer',
+							'props' => [
+								'job' => $jobArray,
+								'title' => $jobArray['name'] ?: $jobArray['type'],
+								'icon' => $icon,
+								'submitButton' => $jobArray['status'] === 'failed' ? t('queues.drawer.retry') : false
+							]
+						];
+					},
+					'submit' => function (string $id) {
+						$newId = Queues::manager()->retry($id);
+						return [
+							'event' => 'queues.job.retry',
+							'redirect' => false
 						];
 					}
 				]

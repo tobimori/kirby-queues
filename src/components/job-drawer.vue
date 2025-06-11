@@ -1,0 +1,240 @@
+<template>
+	<k-drawer
+		ref="drawer"
+		class="k-queues-job-drawer"
+		v-bind="$props"
+		@cancel="$emit('cancel')"
+		@crumb="$emit('crumb', $event)"
+		@submit="$emit('submit', value)"
+		@tab="$emit('tab', $event)"
+	>
+		<k-stats :reports="statsReports" size="small" />
+
+		<k-section :label="$t('queues.job.error')" v-if="error">
+			<k-box v-if="error" theme="negative" class="k-queues-job-error">
+				{{ error }}
+			</k-box>
+		</k-section>
+
+		<k-section :label="$t('queues.drawer.payload')" v-if="payloadText !== '[]'">
+			<k-code language="json">{{ payloadText }}</k-code>
+		</k-section>
+
+		<k-section :label="$t('queues.drawer.logs')" v-if="logs && logs.length > 0">
+			<div class="k-queues-job-logs">
+				<div
+					v-for="(log, index) in logs"
+					:key="index"
+					class="k-queues-job-log-entry"
+					:data-level="log.level"
+				>
+					<time class="k-queues-job-log-time">{{
+						formatLogTime(log.timestamp)
+					}}</time>
+					<span class="k-queues-job-log-level">{{ log.level }}</span>
+					<span class="k-queues-job-log-message">{{ log.message }}</span>
+				</div>
+			</div>
+		</k-section>
+
+		<k-section :label="$t('queues.drawer.logs')" v-else>
+			<k-empty icon="list-bullet">
+				{{ $t("queues.drawer.logs.empty") }}
+			</k-empty>
+		</k-section>
+	</k-drawer>
+</template>
+
+<script setup>
+import { computed, usePanel } from "kirbyuse"
+import { disabled, icon, id, options } from "kirbyuse/props"
+
+const props = defineProps({
+	...disabled,
+	...icon,
+	...id,
+	...options,
+	/**
+	 * An array of breadcrumb items
+	 */
+	breadcrumb: {
+		default: () => [],
+		type: Array
+	},
+	/**
+	 * The name of the currently active tab
+	 */
+	tab: {
+		type: String
+	},
+	/**
+	 * An object with tab definitions.
+	 */
+	tabs: {
+		default: () => ({}),
+		type: Object
+	},
+	/**
+	 * The default title for the drawer header
+	 */
+	title: String,
+	/**
+	 * @private
+	 */
+	visible: {
+		default: false,
+		type: Boolean
+	},
+	// Job data
+	job: {
+		type: Object,
+		required: true
+	},
+	value: {
+		type: Object,
+		default: () => ({})
+	},
+	submitButton: [String, Boolean]
+})
+
+defineEmits(["cancel", "crumb", "input", "submit", "tab"])
+
+const panel = usePanel()
+
+const error = computed(() => props.job?.error || null)
+
+const payloadText = computed(() => {
+	return JSON.stringify(props.job?.payload || {}, null, 2)
+})
+
+const formatTimestamp = (timestamp) => {
+	return timestamp ? new Date(timestamp * 1000).toLocaleString() : "-"
+}
+
+const statsReports = computed(() => {
+	const status = props.job?.status || "pending"
+	const themes = {
+		pending: "warning",
+		running: "info",
+		completed: "positive",
+		failed: "negative"
+	}
+
+	return [
+		{
+			info: panel.t("queues.job.status"),
+			value: panel.t("queues.status." + status),
+			theme: themes[status]
+		},
+		{
+			info: panel.t("queues.job.queue"),
+			value: props.job?.queue || "default"
+		},
+		{
+			info: panel.t("queues.job.attempts"),
+			value: `${props.job?.attempts || 0} / ${props.job?.max_attempts || 3}`
+		},
+		{
+			info: panel.t("queues.job.created"),
+			value: formatTimestamp(props.job?.created_at)
+		}
+	]
+})
+
+const logs = computed(() => props.job?.logs || [])
+
+const formatLogTime = (timestamp) => {
+	if (!timestamp) return "-"
+	const date = new Date(timestamp * 1000)
+	return date.toLocaleTimeString()
+}
+</script>
+
+<style>
+.k-queues-job-drawer {
+	.k-drawer-body {
+		padding: var(--spacing-6);
+	}
+
+	.k-stats {
+		margin-bottom: var(--spacing-6);
+		grid-template-columns: repeat(2, 1fr);
+	}
+
+	.k-code {
+		max-height: 300px;
+		overflow: auto;
+		font-size: var(--text-xs);
+	}
+}
+
+.k-queues-job-error {
+	margin-bottom: var(--spacing-6);
+}
+
+.k-queues-job-logs {
+	background: var(--color-black);
+	border-radius: var(--rounded);
+	padding: 0 var(--spacing-3);
+	max-height: 400px;
+	overflow-y: auto;
+	font-family: var(--font-mono);
+	font-size: var(--text-xs);
+	line-height: 1.5;
+}
+
+.k-queues-job-log-entry {
+	display: flex;
+	gap: var(--spacing-3);
+	padding: 2px var(--spacing-2);
+	margin: 0 calc(var(--spacing-3) * -1);
+	line-height: 1.5;
+
+	&[data-level="info"] {
+		background: var(--color-blue-900);
+
+		.k-queues-job-log-level {
+			color: var(--color-blue-400);
+		}
+	}
+
+	&[data-level="warning"] {
+		background: var(--color-yellow-900);
+
+		.k-queues-job-log-level {
+			color: var(--color-yellow-400);
+		}
+	}
+
+	&[data-level="error"] {
+		background: var(--color-red-900);
+
+		.k-queues-job-log-level {
+			color: var(--color-red-400);
+		}
+	}
+
+	&[data-level="debug"] .k-queues-job-log-level {
+		color: var(--color-gray-500);
+	}
+}
+
+.k-queues-job-log-time {
+	color: var(--color-gray-500);
+	white-space: nowrap;
+	min-width: 8ch;
+}
+
+.k-queues-job-log-level {
+	font-weight: var(--font-medium);
+	text-transform: uppercase;
+	white-space: nowrap;
+	min-width: 5ch;
+}
+
+.k-queues-job-log-message {
+	flex: 1;
+	word-break: break-word;
+	color: var(--color-white);
+}
+</style>

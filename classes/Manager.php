@@ -195,6 +195,34 @@ class Manager
 	}
 
 	/**
+	 * Add a log entry to a job
+	 *
+	 * @internal
+	 */
+	public function addJobLog(string $id, string $level, string $message, array $context = []): void
+	{
+		$job = $this->storage->get($id);
+		if ($job === null) {
+			return;
+		}
+
+		$logs = $job['logs'] ?? [];
+		$logs[] = [
+			'timestamp' => time(),
+			'level' => $level,
+			'message' => $message,
+			'context' => $context
+		];
+
+		// Keep only last 100 log entries
+		if (count($logs) > 100) {
+			$logs = array_slice($logs, -100);
+		}
+
+		$this->storage->update($id, ['logs' => $logs]);
+	}
+
+	/**
 	 * Mark job as running
 	 *
 	 * @internal

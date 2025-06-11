@@ -17,12 +17,20 @@
 	"queues.job.failed": "Fehlgeschlagen",
 	"queues.job.attempts": "Versuche",
 	"queues.job.progress": "Fortschritt",
+	"queues.job.error": "Fehler",
 	
+	"queues.action.view": "Details anzeigen",
 	"queues.action.retry": "Wiederholen",
 	"queues.action.delete": "Löschen",
 	"queues.action.run": "Jetzt ausführen",
 	"queues.action.clear": "Leeren",
 	"queues.action.refresh": "Aktualisieren",
+	
+	"queues.drawer.details": "Details",
+	"queues.drawer.payload": "Payload",
+	"queues.drawer.logs": "Protokoll",
+	"queues.drawer.logs.empty": "Keine Protokolleinträge für diesen Job vorhanden",
+	"queues.drawer.retry": "Job wiederholen",
 	
 	"queues.status.pending": "Wartend",
 	"queues.status.running": "In Bearbeitung",
@@ -36,6 +44,9 @@
 	
 	"queues.total": "Gesamt",
 	"queues.overview": "Übersicht",
+	"queues.all": "Alle Jobs",
+	
+	"queues.jobType.all": "Alle Typen",
 	
 	"queues.timeRange.lastHour": "Letzte Stunde",
 	"queues.timeRange.last24Hours": "Letzte 24 Stunden",

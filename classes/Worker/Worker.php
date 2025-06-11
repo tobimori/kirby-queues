@@ -147,6 +147,12 @@ class Worker
 
 		// mark job as running (this increments attempts in storage)
 		$this->manager->markRunning($job->id(), $this->workerId);
+		
+		// Add log entry for job start
+		$this->manager->addJobLog($job->id(), 'info', 'Job started', [
+			'worker' => $this->workerId,
+			'attempt' => $job->attempts()
+		]);
 
 		try {
 			// set up timeout if configured
@@ -160,6 +166,9 @@ class Worker
 
 			// execute the job
 			$job->handle();
+			
+			// Add log entry for job completion
+			$this->manager->addJobLog($job->id(), 'info', 'Job completed successfully');
 
 			// clear timeout
 			if ($timeout > 0 && function_exists('pcntl_alarm')) {
@@ -196,6 +205,13 @@ class Worker
 	protected function handleFailedJob(Job $job, \Exception $exception, float $startTime): JobResult
 	{
 		$this->output("Job {$job->id()} failed: " . $exception->getMessage(), 'error');
+		
+		// Add log entry for job failure
+		$this->manager->addJobLog($job->id(), 'error', 'Job failed: ' . $exception->getMessage(), [
+			'exception' => get_class($exception),
+			'file' => $exception->getFile(),
+			'line' => $exception->getLine()
+		]);
 
 		// check if job should be retried
 		if ($job->shouldRetry()) {
@@ -204,6 +220,13 @@ class Worker
 			$this->manager->release($job->id(), $delay);
 
 			$this->output("Job {$job->id()} will be retried in {$delay} seconds (attempt {$job->attempts()}/{$job->maxAttempts()})", 'warning');
+			
+			// Add log entry for retry
+			$this->manager->addJobLog($job->id(), 'warning', "Job will be retried in {$delay} seconds", [
+				'attempt' => $job->attempts(),
+				'max_attempts' => $job->maxAttempts(),
+				'delay' => $delay
+			]);
 
 			return new JobResult(
 				$job->id(),
@@ -217,6 +240,12 @@ class Worker
 
 		// mark as failed
 		$this->manager->markFailed($job->id(), $exception);
+		
+		// Add log entry for permanent failure
+		$this->manager->addJobLog($job->id(), 'error', 'Job permanently failed after all retries', [
+			'attempts' => $job->attempts(),
+			'max_attempts' => $job->maxAttempts()
+		]);
 
 		// call job's failed method
 		try {

@@ -30,8 +30,13 @@ class FailingExampleJob extends Job
      */
     public function handle(): void
     {
+        $this->logInfo("Starting failing example job");
+        
         $this->progress(50, "About to fail...");
+        $this->logWarning("Job is about to fail intentionally");
+        
         sleep(1);
+        
         throw new \Exception("This job is designed to fail for demonstration purposes");
     }
     
