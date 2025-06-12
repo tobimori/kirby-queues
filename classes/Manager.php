@@ -210,7 +210,7 @@ class Manager
 	{
 		$this->storage->release($id, $delay);
 	}
-	
+
 	/**
 	 * Update job attempts count
 	 *
@@ -316,13 +316,13 @@ class Manager
 				// it's a class name, create instance directly
 				$instance = new $job();
 				$instance->setPayload($payload);
-				
+
 				// ensure the job type is registered
 				$type = $instance->type();
 				if (Queues::job($type) === null) {
 					Queues::register($job);
 				}
-				
+
 				$job = $instance;
 			} else {
 				// it's a job type, use the registry
@@ -331,7 +331,7 @@ class Manager
 		} else {
 			$job->setPayload($payload);
 		}
-		
+
 		return $job;
 	}
 

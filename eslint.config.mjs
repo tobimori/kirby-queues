@@ -28,7 +28,8 @@ export default [
 				window: "readonly",
 				document: "readonly",
 				console: "readonly",
-				panel: "readonly"
+				panel: "readonly",
+				URLSearchParams: "readonly"
 			}
 		}
 	}

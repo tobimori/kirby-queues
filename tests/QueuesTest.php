@@ -39,7 +39,7 @@ test('job execution works', function () {
 
 test('failing job throws exception', function () {
 	$job = new FailingTestJob();
-	expect(fn() => $job->handle())->toThrow(Exception::class);
+	expect(fn () => $job->handle())->toThrow(Exception::class);
 });
 
 test('can use helper function', function () {

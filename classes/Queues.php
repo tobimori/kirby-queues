@@ -41,7 +41,7 @@ class Queues
 	public static function init(): void
 	{
 		static::$manager = new Manager();
-		
+
 		// Register default queues from config
 		$defaultQueues = App::instance()->option('tobimori.queues.queues', ['default', 'high', 'low']);
 		foreach ($defaultQueues as $queue) {
@@ -170,7 +170,7 @@ class Queues
 	public static function registerQueue(string|array $queues): void
 	{
 		$queues = is_string($queues) ? [$queues] : $queues;
-		
+
 		foreach ($queues as $queue) {
 			if (!in_array($queue, static::$queues)) {
 				static::$queues[] = $queue;
@@ -185,10 +185,10 @@ class Queues
 	{
 		// Get config queues
 		$configQueues = App::instance()?->option('tobimori.queues.queues') ?? ['default', 'high', 'low'];
-		
+
 		// Merge config queues with dynamically registered queues, ensuring 'default' is always first
 		$allQueues = array_unique(array_merge(['default'], $configQueues, static::$queues));
-		
+
 		return array_values($allQueues);
 	}
 }

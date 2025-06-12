@@ -56,8 +56,8 @@ return [
 
 			$cli->table($results);
 			$cli->br();
-			
-			$successCount = count(array_filter($results, fn($r) => $r['Status'] === '✓ Retried'));
+
+			$successCount = count(array_filter($results, fn ($r) => $r['Status'] === '✓ Retried'));
 			$cli->green()->bold()->out("✓ Retried {$successCount} of " . count($failed) . " job(s)");
 		} else {
 			try {
@@ -66,16 +66,16 @@ return [
 					$cli->red()->bold()->out('✗ Job not found');
 					return;
 				}
-				
+
 				$newId = $manager->retry($id);
-				
+
 				$retryData = [
 					['Field' => 'Original ID', 'Value' => $id],
 					['Field' => 'New ID', 'Value' => $newId],
 					['Field' => 'Job Type', 'Value' => $job['handler'] ?? 'Unknown'],
 					['Field' => 'Queue', 'Value' => $job['queue'] ?? 'default']
 				];
-				
+
 				$cli->table($retryData);
 				$cli->br();
 				$cli->green()->bold()->out('✓ Job queued for retry');

@@ -35,7 +35,7 @@ abstract class Job
 	 */
 	protected ?string $id = null;
 
-	
+
 	/**
 	 * @var CLI|null CLI instance for output
 	 * @internal
@@ -177,7 +177,7 @@ abstract class Job
 	{
 		return $this->options['attempts'] ?? App::instance()->option('tobimori.queues.worker.tries', 3);
 	}
-	
+
 	/**
 	 * Set CLI instance for output
 	 * @internal
@@ -194,7 +194,7 @@ abstract class Job
 	public function retryBackoff(): int
 	{
 		$backoff = $this->options['backoff'] ?? App::instance()->option('tobimori.queues.worker.backoff', 60);
-		
+
 		// exponential backoff: backoff * (attempt ^ 2)
 		return $backoff * ($this->attempts ** 2);
 	}
@@ -227,11 +227,11 @@ abstract class Job
 		if ($this->id !== null) {
 			Queues::manager()->addJobLog($this->id, $level, $message, $context);
 		}
-		
+
 		// Also output to CLI if available
 		if ($this->cli !== null) {
 			$timestamp = date('d.m.Y H:i:s:');
-			
+
 			match ($level) {
 				'error' => $this->cli->out("<red>{$timestamp}</red>  <bold><red>ERROR</red></bold>    {$message}"),
 				'warning' => $this->cli->out("<yellow>{$timestamp}</yellow>  <bold><yellow>WARNING</yellow></bold>  {$message}"),
@@ -276,7 +276,7 @@ abstract class Job
 	public static function fromArray(array $data): static
 	{
 		$job = Queues::createJob($data['type'], $data['payload'] ?? []);
-		
+
 		$job->setId($data['id'] ?? null)
 			->setOptions($data['options'] ?? [])
 			->setAttempts($data['attempts'] ?? 0);

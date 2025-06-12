@@ -23,7 +23,7 @@ return [
 			$lastRun = $schedule['lastRun'] ? date('Y-m-d H:i:s', $schedule['lastRun']) : 'Never';
 			$nextRun = $schedule['nextRun'] ? date('Y-m-d H:i:s', $schedule['nextRun']) : 'N/A';
 			$queue = $schedule['options']['queue'] ?? 'default';
-			
+
 			$scheduleData[] = [
 				'Job' => $schedule['job'],
 				'Schedule' => $schedule['expression'],
@@ -39,7 +39,7 @@ return [
 
 		$padding = $cli->padding(25)->char('.');
 		$padding->label('Total scheduled jobs')->result(count($scheduled));
-		
+
 		$nextJob = null;
 		$nextTime = PHP_INT_MAX;
 		foreach ($scheduled as $schedule) {
@@ -48,7 +48,7 @@ return [
 				$nextJob = $schedule;
 			}
 		}
-		
+
 		if ($nextJob) {
 			$cli->br();
 			$cli->bold()->out('⏭️  Next job to run:');

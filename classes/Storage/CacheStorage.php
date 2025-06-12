@@ -48,7 +48,7 @@ class CacheStorage implements StorageInterface
 			'created_at' => time(),
 			'available_at' => time()
 		];
-		
+
 		// Only set defaults if not already present in job data
 		foreach ($defaults as $key => $value) {
 			if (!isset($job[$key])) {
@@ -165,7 +165,7 @@ class CacheStorage implements StorageInterface
 		}
 
 		// sort by created_at descending
-		usort($jobs, fn($a, $b) => $b['created_at'] <=> $a['created_at']);
+		usort($jobs, fn ($a, $b) => $b['created_at'] <=> $a['created_at']);
 
 		return $jobs;
 	}
@@ -288,7 +288,7 @@ class CacheStorage implements StorageInterface
 		if ($job !== null) {
 			// Increment attempts when job starts running
 			$attempts = ($job['attempts'] ?? 0) + 1;
-			
+
 			$this->update($id, [
 				'status' => JobStatus::RUNNING->value,
 				'started_at' => time(),

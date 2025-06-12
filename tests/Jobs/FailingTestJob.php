@@ -6,18 +6,18 @@ use tobimori\Queues\Job;
 
 class FailingTestJob extends Job
 {
-    public function handle(): void
-    {
-        throw new \Exception('Test job failed');
-    }
+	public function handle(): void
+	{
+		throw new \Exception('Test job failed');
+	}
 
-    public function type(): string
-    {
-        return 'failing-test-job';
-    }
+	public function type(): string
+	{
+		return 'failing-test-job';
+	}
 
-    public function name(): string
-    {
-        return 'Failing Test Job';
-    }
+	public function name(): string
+	{
+		return 'Failing Test Job';
+	}
 }

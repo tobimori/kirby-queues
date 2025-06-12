@@ -47,7 +47,7 @@ return [
 			'message' => 'Delayed example job',
 			'duration' => 3
 		]);
-		
+
 		$createdJobs[] = [
 			'ID' => substr($delayedJobId, 0, 8) . '...',
 			'Type' => 'Delayed (10s)',
@@ -56,7 +56,7 @@ return [
 		];
 
 		$failingJobId = Queues::push(FailingExampleJob::class);
-		
+
 		$createdJobs[] = [
 			'ID' => substr($failingJobId, 0, 8) . '...',
 			'Type' => 'Failing',
@@ -70,21 +70,21 @@ return [
 		$stats = Queues::manager()->stats();
 		$cli->bold()->green()->out('✓ Jobs created successfully!');
 		$cli->br();
-		
+
 		$padding = $cli->padding(20)->char('.');
 		$padding->label('Total jobs')->result($stats['total']);
 		$cli->br();
 
 		$cli->bold()->out('📝 Next steps:');
 		$cli->br();
-		
+
 		$commands = [
 			['Command' => 'kirby queues:work', 'Description' => 'Process all jobs'],
 			['Command' => 'kirby queues:work high', 'Description' => 'Process high priority queue'],
 			['Command' => 'kirby queues:work --once', 'Description' => 'Process single job'],
 			['Command' => 'kirby queues:status', 'Description' => 'Monitor queue status']
 		];
-		
+
 		$cli->table($commands);
 	}
 ];

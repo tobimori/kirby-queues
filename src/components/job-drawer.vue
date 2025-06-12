@@ -97,15 +97,15 @@ const reports = computed(() => {
 	>
 		<k-stats :reports="reports" size="small" />
 
-		<k-section :label="$t('queues.job.error')" v-if="props.job?.error">
+		<k-section v-if="props.job?.error" :label="$t('queues.job.error')">
 			<k-box theme="negative" class="k-queues-job-error">
 				{{ props.job?.error }}
 			</k-box>
 		</k-section>
 
 		<k-section
-			:label="$t('queues.drawer.payload')"
 			v-if="JSON.stringify(props.job?.payload) !== '[]'"
+			:label="$t('queues.drawer.payload')"
 		>
 			<k-code language="json">{{
 				JSON.stringify(props.job?.payload || {}, null, 2)
@@ -113,8 +113,8 @@ const reports = computed(() => {
 		</k-section>
 
 		<k-section
-			:label="$t('queues.drawer.logs')"
 			v-if="props?.job?.logs?.length > 0"
+			:label="$t('queues.drawer.logs')"
 		>
 			<div class="k-queues-job-logs">
 				<div
@@ -132,7 +132,7 @@ const reports = computed(() => {
 			</div>
 		</k-section>
 
-		<k-section :label="$t('queues.drawer.logs')" v-else>
+		<k-section v-else :label="$t('queues.drawer.logs')">
 			<k-empty icon="list-bullet">
 				{{ $t("queues.drawer.logs.empty") }}
 			</k-empty>

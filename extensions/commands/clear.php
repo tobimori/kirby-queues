@@ -30,11 +30,11 @@ return [
 		if ($completedHours !== null) {
 			$cli->padding(30)->char('.')->label('Completed jobs older than')->result("{$completedHours}h");
 		}
-		
+
 		if ($failedHours !== null) {
 			$cli->padding(30)->char('.')->label('Failed jobs older than')->result("{$failedHours}h");
 		}
-		
+
 		$cli->br();
 
 		try {
@@ -42,7 +42,7 @@ return [
 				$completedHours !== null ? (int) $completedHours : null,
 				$failedHours !== null ? (int) $failedHours : null
 			);
-			
+
 			$cli->green()->bold()->out("✓ Cleared {$cleared} job(s)");
 		} catch (\Exception $e) {
 			$cli->red()->bold()->out('✗ Failed to clear jobs');

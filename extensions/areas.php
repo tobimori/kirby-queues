@@ -3,7 +3,7 @@
 use tobimori\Queues\Panel\View;
 
 return [
-	'queues' => fn() => [
+	'queues' => fn () => [
 		'label' => t('queues.title'),
 		'icon' => 'layers',
 		'menu' => true,
@@ -11,23 +11,23 @@ return [
 		'views' => [
 			[
 				'pattern' => 'queues',
-				'action' => fn() => View::tab('all')
+				'action' => fn () => View::tab('all')
 			],
 			[
 				'pattern' => 'queues/pending',
-				'action' => fn() => View::tab('pending')
+				'action' => fn () => View::tab('pending')
 			],
 			[
 				'pattern' => 'queues/completed',
-				'action' => fn() => View::tab('completed')
+				'action' => fn () => View::tab('completed')
 			],
 			[
 				'pattern' => 'queues/running',
-				'action' => fn() => View::tab('running')
+				'action' => fn () => View::tab('running')
 			],
 			[
 				'pattern' => 'queues/failed',
-				'action' => fn() => View::tab('failed')
+				'action' => fn () => View::tab('failed')
 			]
 		],
 	]

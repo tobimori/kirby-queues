@@ -142,7 +142,7 @@ class CronExpression
 			// handle steps (e.g., "*/5" or "10-20/2")
 			if (str_contains($listPart, '/')) {
 				[$range, $step] = explode('/', $listPart, 2);
-				
+
 				if (!is_numeric($step) || $step < 1) {
 					throw new \InvalidArgumentException("Invalid step value: {$step}");
 				}
@@ -200,7 +200,7 @@ class CronExpression
 
 		// handle day of week special case (0 and 7 both mean Sunday)
 		if ($position === 4) {
-			$values = array_map(fn($v) => $v === 7 ? 0 : $v, $values);
+			$values = array_map(fn ($v) => $v === 7 ? 0 : $v, $values);
 		}
 
 		return array_unique($values);

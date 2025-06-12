@@ -17,7 +17,7 @@ class View
 	public static function tab(string $status = 'all'): array
 	{
 		$props = static::props($status);
-		
+
 		return [
 			'component' => 'k-queues-view',
 			'title' => t('queues.title'),

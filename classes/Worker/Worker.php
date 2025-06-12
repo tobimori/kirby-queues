@@ -170,7 +170,7 @@ class Worker
 
 			// Pass CLI instance to job for output
 			$job->setCli($this->cli);
-			
+
 			// execute the job
 			$job->handle();
 
