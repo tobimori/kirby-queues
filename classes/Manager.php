@@ -135,18 +135,6 @@ class Manager
 		$this->storage->delete($id);
 	}
 
-	/**
-	 * Update job progress
-	 *
-	 * @internal
-	 */
-	public function updateProgress(string $id, float $progress, ?string $message = null): void
-	{
-		$this->storage->update($id, [
-			'progress' => $progress,
-			'progressMessage' => $message
-		]);
-	}
 
 	/**
 	 * Add a log entry to a job

@@ -35,17 +35,6 @@ abstract class Job
 	 */
 	protected ?string $id = null;
 
-	/**
-	 * @var float Current progress percentage (0-100)
-	 * @internal
-	 */
-	protected float $progress = 0;
-
-	/**
-	 * @var string|null Progress message
-	 * @internal
-	 */
-	protected ?string $progressMessage = null;
 	
 	/**
 	 * @var CLI|null CLI instance for output
@@ -229,19 +218,6 @@ abstract class Job
 		return $this->id;
 	}
 
-	/**
-	 * Update job progress
-	 */
-	protected function progress(float $percentage, ?string $message = null): void
-	{
-		$this->progress = min(100, max(0, $percentage));
-		$this->progressMessage = $message;
-
-		// update progress in storage if job has ID
-		if ($this->id !== null) {
-			Queues::manager()->updateProgress($this->id, $this->progress, $message);
-		}
-	}
 
 	/**
 	 * Add a log entry
@@ -266,21 +242,6 @@ abstract class Job
 	}
 
 
-	/**
-	 * Get current progress
-	 */
-	public function getProgress(): float
-	{
-		return $this->progress;
-	}
-
-	/**
-	 * Get progress message
-	 */
-	public function getProgressMessage(): ?string
-	{
-		return $this->progressMessage;
-	}
 
 	/**
 	 * Get timeout for this job in seconds
@@ -303,9 +264,7 @@ abstract class Job
 			'name' => $this->name(),
 			'payload' => $this->payload,
 			'options' => $this->options,
-			'attempts' => $this->attempts,
-			'progress' => $this->progress,
-			'progressMessage' => $this->progressMessage
+			'attempts' => $this->attempts
 		];
 	}
 
@@ -321,14 +280,6 @@ abstract class Job
 		$job->setId($data['id'] ?? null)
 			->setOptions($data['options'] ?? [])
 			->setAttempts($data['attempts'] ?? 0);
-
-		if (isset($data['progress'])) {
-			$job->progress = $data['progress'];
-		}
-
-		if (isset($data['progressMessage'])) {
-			$job->progressMessage = $data['progressMessage'];
-		}
 
 		return $job;
 	}

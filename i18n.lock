@@ -17,7 +17,6 @@ checksums:
     queues.job.completed: 0e4bbce9985f25eb673d9a054c8d5334
     queues.job.failed: 99f87615af1fffa2b8802866b096705a
     queues.job.attempts: c17e337fe7be198e386cfdfb7a7c4793
-    queues.job.progress: dd0200d5849ebb7d64c15098ae91d229
     queues.job.error: 3c95bcb32c2104b99a46f5b3dd015248
     queues.action.view: 885f3ad1c2e448d104a45c0291b79ba5
     queues.action.retry: 6e44d18639560596569a1278f9c83676

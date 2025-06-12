@@ -15,7 +15,6 @@
 	"queues.job.completed": "Abgeschlossen",
 	"queues.job.failed": "Fehlgeschlagen",
 	"queues.job.attempts": "Versuche",
-	"queues.job.progress": "Fortschritt",
 	"queues.job.error": "Fehler",
 	"queues.action.view": "Details anzeigen",
 	"queues.action.retry": "Wiederholen",

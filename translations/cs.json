@@ -15,7 +15,6 @@
 	"queues.job.completed": "Dokončeno",
 	"queues.job.failed": "Selhalo",
 	"queues.job.attempts": "Pokusy",
-	"queues.job.progress": "Průběh",
 	"queues.job.error": "Chyba",
 	"queues.action.view": "Zobrazit detaily",
 	"queues.action.retry": "Zkusit znovu",
