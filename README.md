@@ -8,9 +8,6 @@ Its storage is powered by the Kirby Caching API, which allows us to easily suppo
 
 Queues also supports scheduled jobs in the same worker process.
 
-If the user has not setup a worker, tasks can be also executed immediately (which is subject of the limits of the PHP request lifecycle).
-
-
 ## Installation
 
 Kirby Queues requires Composer, since it requires the use of the Kirby CLI. If you use Queues in your plugin, keep in mind that Queues also has to be installed separately by the user.
