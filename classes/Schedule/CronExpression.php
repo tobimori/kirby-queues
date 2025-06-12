@@ -68,20 +68,32 @@ class CronExpression
 		$date->setTime((int)$date->format('H'), (int)$date->format('i'), 0);
 
 		// try for up to 4 years to find next run date
-		$maxAttempts = 366 * 4;
-		$attempts = 0;
+		// but limit iterations to prevent performance issues
+		$maxDays = 365 * 4;
+		$dayAttempts = 0;
 
-		while ($attempts < $maxAttempts) {
-			// add one minute for next check
-			if ($attempts > 0 || $this->isDue($date) === false) {
-				$date->modify('+1 minute');
-			}
+		while ($dayAttempts < $maxDays) {
+			// if we're not on the first attempt or current time isn't due
+			if ($dayAttempts > 0 || !$this->isDue($date)) {
+				// if no specific times match today, jump to next day
+				$foundToday = false;
+				$testDate = clone $date;
 
-			if ($this->isDue($date)) {
+				// check rest of today
+				while ($testDate->format('Y-m-d') === $date->format('Y-m-d')) {
+					if ($this->isDue($testDate)) {
+						return $testDate;
+					}
+					$testDate->modify('+1 minute');
+				}
+
+				// jump to start of next day
+				$date->modify('+1 day')->setTime(0, 0, 0);
+				$dayAttempts++;
+			} else {
+				// current time is due
 				return $date;
 			}
-
-			$attempts++;
 		}
 
 		return null;

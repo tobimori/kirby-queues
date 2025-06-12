@@ -22,5 +22,12 @@ uses()->beforeEach(function () {
 		}
 	}
 
+	// Clear scheduled jobs
+	$scheduler = Queues::scheduler();
+	$scheduled = $scheduler->all();
+	foreach ($scheduled as $id => $job) {
+		$scheduler->unschedule($id);
+	}
+
 	ProcessDataJob::reset();
 })->in('.');

@@ -52,8 +52,21 @@ class Scheduler
 
 		// get job type
 		if (is_string($job)) {
-			$jobInstance = Queues::createJob($job, $payload);
-			$jobType = $jobInstance->type();
+			// check if it's a class name or job type
+			if (class_exists($job) && is_subclass_of($job, Job::class)) {
+				// it's a class name, create instance to get type
+				$instance = new $job();
+				$jobType = $instance->type();
+
+				// ensure the job type is registered
+				if (Queues::job($jobType) === null) {
+					Queues::register($job);
+				}
+			} else {
+				// it's a job type, validate it exists
+				$jobInstance = Queues::createJob($job, $payload);
+				$jobType = $jobInstance->type();
+			}
 		} else {
 			$jobType = $job->type();
 		}
@@ -192,7 +205,13 @@ class Scheduler
 	 */
 	protected function shouldPreventOverlap(array $schedule): bool
 	{
-		return $schedule['options']['withoutOverlapping'] ?? App::instance()->option('tobimori.queues.schedule.overlap', false) === false;
+		// If withoutOverlapping is explicitly set, use that
+		if (isset($schedule['options']['withoutOverlapping'])) {
+			return $schedule['options']['withoutOverlapping'];
+		}
+
+		// Otherwise check global config (default is to prevent overlap)
+		return App::instance()->option('tobimori.queues.schedule.preventOverlap', true);
 	}
 
 	/**
