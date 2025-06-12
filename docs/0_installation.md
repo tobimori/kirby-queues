@@ -154,15 +154,7 @@ return [
 ];
 ```
 
-Once enabled, you'll find the Queues area in your Panel's main menu. The interface provides:
-
-- **Real-time job monitoring** – Watch jobs move through different states (pending, processing, completed, failed)
-- **Detailed job inspection** – Click any job to see its payload, attempts, error messages, and execution logs
-- **Bulk operations** – Retry multiple failed jobs at once or clear old completed jobs to free up storage
-- **Queue statistics** – Track performance metrics, success rates, and processing times
-- **Filter and search** – Quickly find specific jobs by status, queue, or job type
-
-The Panel area is particularly valuable during development and debugging, as it gives you immediate insight into what's happening with your background jobs without needing to dig through logs or database entries.
+Once enabled, you'll find the Queues area in your Panel's main menu. It's particularly valuable during development and debugging, as it gives you immediate insight into what's happening with your background jobs without needing to dig through logs or database entries.
 
 ## Next Steps
 
