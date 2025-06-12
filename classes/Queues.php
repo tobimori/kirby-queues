@@ -52,6 +52,7 @@ class Queues
 	/**
 	 * Register job classes from other plugins
 	 *
+	 * @param string|array<string> $jobs Job class names to register
 	 * @throws InvalidArgumentException If job class doesn't extend Job base class
 	 */
 	public static function register(string|array $jobs): void
@@ -77,6 +78,7 @@ class Queues
 	/**
 	 * Push a job to the queue
 	 *
+	 * @param array<string, mixed> $payload Job payload data
 	 * @throws InvalidArgumentException If job type is not registered
 	 */
 	public static function push(string|Job $job, array $payload = [], ?string $queue = null): string
@@ -87,6 +89,7 @@ class Queues
 	/**
 	 * Push a job with delay
 	 *
+	 * @param array<string, mixed> $payload Job payload data
 	 * @throws InvalidArgumentException If job type is not registered
 	 */
 	public static function later(int $delay, string|Job $job, array $payload = [], ?string $queue = null): string
@@ -97,6 +100,7 @@ class Queues
 	/**
 	 * Schedule a recurring job
 	 *
+	 * @param array<string, mixed> $payload Job payload data
 	 * @throws InvalidArgumentException If job type is not registered or cron expression is invalid
 	 */
 	public static function schedule(string $expression, string|Job $job, array $payload = []): void
@@ -130,6 +134,8 @@ class Queues
 
 	/**
 	 * Get registered job classes
+	 *
+	 * @return array<string, class-string<Job>>
 	 */
 	public static function jobs(): array
 	{
@@ -147,6 +153,7 @@ class Queues
 	/**
 	 * Create job instance from type
 	 *
+	 * @param array<string, mixed> $payload Job payload data
 	 * @throws InvalidArgumentException If job type is not registered
 	 * @internal
 	 */
@@ -158,6 +165,7 @@ class Queues
 			throw new InvalidArgumentException("Job type '{$type}' is not registered");
 		}
 
+		/** @var Job $job */
 		$job = new $class();
 		$job->setPayload($payload);
 
@@ -166,6 +174,8 @@ class Queues
 
 	/**
 	 * Register a queue name
+	 *
+	 * @param string|array<string> $queues Queue names to register
 	 */
 	public static function registerQueue(string|array $queues): void
 	{
@@ -180,11 +190,13 @@ class Queues
 
 	/**
 	 * Get all registered queue names
+	 *
+	 * @return array<string>
 	 */
 	public static function registeredQueues(): array
 	{
 		// Get config queues
-		$configQueues = App::instance()?->option('tobimori.queues.queues') ?? ['default', 'high', 'low'];
+		$configQueues = App::instance()->option('tobimori.queues.queues') ?? ['default', 'high', 'low'];
 
 		// Merge config queues with dynamically registered queues, ensuring 'default' is always first
 		$allQueues = array_unique(array_merge(['default'], $configQueues, static::$queues));

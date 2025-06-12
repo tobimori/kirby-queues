@@ -34,7 +34,8 @@ enum JobStatus: string
 	 */
 	public function label(): string
 	{
-		return t('queues.status.' . $this->value);
+		$label = t('queues.status.' . $this->value);
+		return is_string($label) ? $label : $this->value;
 	}
 
 	/**

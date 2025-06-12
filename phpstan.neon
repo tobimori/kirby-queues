@@ -1,0 +1,13 @@
+parameters:
+	level: 7
+	paths:
+		- classes
+		- tests
+		- extensions
+	excludePaths:
+		- tests
+	bootstrapFiles:
+		- vendor/autoload.php
+	treatPhpDocTypesAsCertain: false
+	ignoreErrors:
+		- '#Call to an undefined method Kirby\\CLI\\CLI::#'

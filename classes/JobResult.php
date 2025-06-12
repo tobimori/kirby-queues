@@ -97,6 +97,8 @@ class JobResult
 
 	/**
 	 * Convert to array for storage/serialization
+	 *
+	 * @return array<string, mixed>
 	 */
 	public function toArray(): array
 	{

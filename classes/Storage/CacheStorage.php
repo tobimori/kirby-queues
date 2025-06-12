@@ -38,6 +38,8 @@ class CacheStorage implements StorageInterface
 
 	/**
 	 * @inheritDoc
+	 *
+	 * @param array<string, mixed> $job Job data
 	 */
 	public function push(string $queue, array $job): void
 	{
@@ -67,6 +69,8 @@ class CacheStorage implements StorageInterface
 
 	/**
 	 * @inheritDoc
+	 *
+	 * @return array<string, mixed>|null Job data or null if no job available
 	 */
 	public function pop(string $queue): ?array
 	{
@@ -95,6 +99,8 @@ class CacheStorage implements StorageInterface
 
 	/**
 	 * @inheritDoc
+	 *
+	 * @return array<string, mixed>|null Job data or null if not found
 	 */
 	public function get(string $id): ?array
 	{
@@ -103,6 +109,8 @@ class CacheStorage implements StorageInterface
 
 	/**
 	 * @inheritDoc
+	 *
+	 * @param array<string, mixed> $data Job data to update
 	 */
 	public function update(string $id, array $data): void
 	{
@@ -135,6 +143,8 @@ class CacheStorage implements StorageInterface
 
 	/**
 	 * @inheritDoc
+	 *
+	 * @return array<array<string, mixed>> Array of job data
 	 */
 	public function getByStatus(string $status, int $limit = 100, int $offset = 0): array
 	{
@@ -172,6 +182,8 @@ class CacheStorage implements StorageInterface
 
 	/**
 	 * @inheritDoc
+	 *
+	 * @return array<string, mixed> Statistics data
 	 */
 	public function stats(): array
 	{
@@ -209,6 +221,8 @@ class CacheStorage implements StorageInterface
 
 	/**
 	 * @inheritDoc
+	 *
+	 * @return array<string, int> Queue names mapped to job counts
 	 */
 	public function queues(): array
 	{
@@ -265,6 +279,8 @@ class CacheStorage implements StorageInterface
 
 	/**
 	 * @inheritDoc
+	 *
+	 * @return array<string, mixed> Scheduled jobs data
 	 */
 	public function getScheduled(): array
 	{
@@ -273,6 +289,8 @@ class CacheStorage implements StorageInterface
 
 	/**
 	 * @inheritDoc
+	 *
+	 * @param array<string, mixed> $scheduled Scheduled jobs data
 	 */
 	public function saveScheduled(array $scheduled): void
 	{
@@ -312,6 +330,8 @@ class CacheStorage implements StorageInterface
 
 	/**
 	 * @inheritDoc
+	 *
+	 * @param array<string, mixed> $exception Exception data
 	 */
 	public function markFailed(string $id, string $error, array $exception = []): void
 	{
@@ -378,7 +398,7 @@ class CacheStorage implements StorageInterface
 	 * Get queue index (list of job IDs)
 	 *
 	 * @param string $queue Queue name
-	 * @return array
+	 * @return array<string> List of job IDs
 	 */
 	protected function getQueueIndex(string $queue): array
 	{
@@ -420,7 +440,7 @@ class CacheStorage implements StorageInterface
 	 * For file cache, we scan the directory. For other drivers, this may not work.
 	 *
 	 * @param string $pattern Key pattern
-	 * @return array
+	 * @return array<string> List of cache keys
 	 */
 	protected function getAllKeys(string $pattern): array
 	{

@@ -15,12 +15,12 @@ use Kirby\CLI\CLI;
 abstract class Job
 {
 	/**
-	 * @var array Job payload data
+	 * @var array<string, mixed> Job payload data
 	 */
 	protected array $payload = [];
 
 	/**
-	 * @var array Job options (queue, delay, attempts, etc.)
+	 * @var array<string, mixed> Job options (queue, delay, attempts, etc.)
 	 */
 	protected array $options = [];
 
@@ -81,6 +81,7 @@ abstract class Job
 	/**
 	 * Set job payload
 	 *
+	 * @param array<string, mixed> $payload
 	 * @internal
 	 */
 	public function setPayload(array $payload): static
@@ -91,6 +92,8 @@ abstract class Job
 
 	/**
 	 * Get job payload
+	 *
+	 * @return array<string, mixed>
 	 */
 	public function payload(): array
 	{
@@ -100,6 +103,7 @@ abstract class Job
 	/**
 	 * Set job options
 	 *
+	 * @param array<string, mixed> $options
 	 * @internal
 	 */
 	public function setOptions(array $options): static
@@ -110,6 +114,8 @@ abstract class Job
 
 	/**
 	 * Get job options
+	 *
+	 * @return array<string, mixed>
 	 */
 	public function options(): array
 	{
@@ -221,6 +227,8 @@ abstract class Job
 
 	/**
 	 * Add a log entry
+	 *
+	 * @param array<string, mixed> $context
 	 */
 	protected function log(string $level, string $message, array $context = []): void
 	{
@@ -254,6 +262,7 @@ abstract class Job
 	/**
 	 * Serialize job for storage
 	 *
+	 * @return array<string, mixed>
 	 * @internal
 	 */
 	public function toArray(): array
@@ -271,9 +280,10 @@ abstract class Job
 	/**
 	 * Restore job from storage
 	 *
+	 * @param array<string, mixed> $data
 	 * @internal
 	 */
-	public static function fromArray(array $data): static
+	public static function fromArray(array $data): Job
 	{
 		$job = Queues::createJob($data['type'], $data['payload'] ?? []);
 

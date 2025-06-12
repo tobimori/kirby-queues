@@ -45,6 +45,7 @@ class Manager
 	/**
 	 * Push a job to the queue
 	 *
+	 * @param array<string, mixed> $payload Job payload data
 	 * @throws InvalidArgumentException
 	 */
 	public function push(string|Job $job, array $payload = [], ?string $queue = null): string
@@ -73,6 +74,7 @@ class Manager
 	/**
 	 * Push a job with delay
 	 *
+	 * @param array<string, mixed> $payload Job payload data
 	 * @throws InvalidArgumentException
 	 */
 	public function later(int $delay, string|Job $job, array $payload = [], ?string $queue = null): string
@@ -139,6 +141,7 @@ class Manager
 	/**
 	 * Add a log entry to a job
 	 *
+	 * @param array<string, mixed> $context Additional context data for the log entry
 	 * @internal
 	 */
 	public function addJobLog(string $id, string $level, string $message, array $context = []): void
@@ -246,6 +249,8 @@ class Manager
 
 	/**
 	 * Get jobs by status
+	 *
+	 * @return array<int, array<string, mixed>> Array of job data arrays
 	 */
 	public function getByStatus(JobStatus|string $status, int $limit = 100, int $offset = 0): array
 	{
@@ -255,6 +260,8 @@ class Manager
 
 	/**
 	 * Get queue statistics
+	 *
+	 * @return array<string, int> Statistics with status names as keys and counts as values
 	 */
 	public function stats(): array
 	{
@@ -263,6 +270,8 @@ class Manager
 
 	/**
 	 * Get all queues with job counts
+	 *
+	 * @return array<string, int> Queue names as keys and job counts as values
 	 */
 	public function queues(): array
 	{
@@ -306,6 +315,8 @@ class Manager
 
 	/**
 	 * Prepare job instance from string or Job object
+	 *
+	 * @param array<string, mixed> $payload Job payload data
 	 */
 	protected function prepareJob(string|Job $job, array $payload): Job
 	{

@@ -21,7 +21,7 @@ namespace tobimori\Queues\Schedule;
 class CronExpression
 {
 	/**
-	 * @var array Cron field boundaries
+	 * @var array<int, array<string, int>> Cron field boundaries
 	 */
 	protected static array $boundaries = [
 		0 => ['min' => 0, 'max' => 59], // minute
@@ -32,7 +32,7 @@ class CronExpression
 	];
 
 	/**
-	 * @var array Parsed expression parts
+	 * @var array<int, array<int|string>> Parsed expression parts
 	 */
 	protected array $parts;
 
@@ -65,7 +65,7 @@ class CronExpression
 	public function getNextRunDate(\DateTime $from): ?\DateTime
 	{
 		$date = clone $from;
-		$date->setTime($date->format('H'), $date->format('i'), 0);
+		$date->setTime((int)$date->format('H'), (int)$date->format('i'), 0);
 
 		// try for up to 4 years to find next run date
 		$maxAttempts = 366 * 4;
@@ -102,13 +102,14 @@ class CronExpression
 	/**
 	 * Parse cron expression
 	 *
+	 * @return array<int, array<int|string>>
 	 * @throws \InvalidArgumentException
 	 */
 	protected function parse(string $expression): array
 	{
 		$parts = preg_split('/\s+/', trim($expression));
 
-		if (count($parts) !== 5) {
+		if ($parts === false || count($parts) !== 5) {
 			throw new \InvalidArgumentException('Cron expression must have exactly 5 parts');
 		}
 
@@ -124,6 +125,7 @@ class CronExpression
 	/**
 	 * Parse a single cron part
 	 *
+	 * @return array<int|string>
 	 * @throws \InvalidArgumentException
 	 */
 	protected function parsePart(string $part, int $position): array

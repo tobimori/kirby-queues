@@ -36,7 +36,7 @@ class Worker
 	protected string $workerId;
 
 	/**
-	 * @var array Worker options
+	 * @var array<string, mixed> Worker options
 	 */
 	protected array $options;
 
@@ -57,6 +57,8 @@ class Worker
 
 	/**
 	 * Constructor
+	 *
+	 * @param array<string, mixed> $options Worker configuration options
 	 */
 	public function __construct(?Manager $manager = null, ?CLI $cli = null, array $options = [])
 	{
@@ -85,6 +87,8 @@ class Worker
 
 	/**
 	 * Start the worker loop
+	 *
+	 * @param string|array<string>|null $queues Queue names to process
 	 */
 	public function work(string|array|null $queues = null, bool $once = false): void
 	{
@@ -298,6 +302,9 @@ class Worker
 
 	/**
 	 * Normalize queue names
+	 *
+	 * @param string|array<string>|null $queues Queue names to normalize
+	 * @return array<string> Normalized queue names
 	 */
 	protected function normalizeQueues(string|array|null $queues): array
 	{
@@ -420,6 +427,8 @@ class Worker
 
 	/**
 	 * Get worker status
+	 *
+	 * @return array<string, mixed>
 	 */
 	public function status(): array
 	{

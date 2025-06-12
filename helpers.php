@@ -4,6 +4,8 @@ use tobimori\Queues\Queues;
 
 /**
  * Push a job to the queue
+ *
+ * @param array<string, mixed> $payload Job payload data
  */
 function queue(string|tobimori\Queues\Job $job, array $payload = [], ?string $queue = null): string
 {
@@ -12,6 +14,8 @@ function queue(string|tobimori\Queues\Job $job, array $payload = [], ?string $qu
 
 /**
  * Push a job to the queue with delay
+ *
+ * @param array<string, mixed> $payload Job payload data
  */
 function queueLater(int $delay, string|tobimori\Queues\Job $job, array $payload = [], ?string $queue = null): string
 {

@@ -17,7 +17,7 @@ return [
 		$padding->label('Total jobs')->result($stats['total']);
 		$cli->br();
 
-		if (!empty($stats['by_status'])) {
+		if (!empty($stats['by_status']) && is_array($stats['by_status'])) {
 			$cli->bold()->out('Job Status:');
 			$statusData = [];
 			foreach ($stats['by_status'] as $status => $count) {
@@ -31,7 +31,7 @@ return [
 			$cli->br();
 		}
 
-		if (!empty($stats['by_queue'])) {
+		if (!empty($stats['by_queue']) && is_array($stats['by_queue'])) {
 			$cli->bold()->out('By Queue:');
 			$queueData = [];
 			foreach ($stats['by_queue'] as $queue => $count) {

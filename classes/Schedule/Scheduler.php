@@ -23,7 +23,7 @@ class Scheduler
 	protected Manager $manager;
 
 	/**
-	 * @var array Scheduled job configurations
+	 * @var array<string, array<string, mixed>> Scheduled job configurations
 	 */
 	protected array $scheduled = [];
 
@@ -39,6 +39,8 @@ class Scheduler
 	/**
 	 * Schedule a recurring job
 	 *
+	 * @param array<string, mixed> $payload Job payload data
+	 * @param array<string, mixed> $options Schedule options
 	 * @throws InvalidArgumentException
 	 */
 	public function schedule(string $expression, string|Job $job, array $payload = [], array $options = []): void
@@ -87,6 +89,8 @@ class Scheduler
 
 	/**
 	 * Get all scheduled jobs
+	 *
+	 * @return array<string, array<string, mixed>>
 	 */
 	public function all(): array
 	{
@@ -95,6 +99,8 @@ class Scheduler
 
 	/**
 	 * Get scheduled job by ID
+	 *
+	 * @return array<string, mixed>|null
 	 */
 	public function find(string $id): ?array
 	{
@@ -106,6 +112,8 @@ class Scheduler
 	 *
 	 * This method should be called periodically (e.g., every minute)
 	 * by the worker to check for scheduled jobs that are due.
+	 *
+	 * @return array<string> Array of queued job IDs
 	 */
 	public function runDue(): array
 	{
@@ -153,6 +161,8 @@ class Scheduler
 
 	/**
 	 * Calculate next run time for a schedule
+	 *
+	 * @param array<string, mixed> $schedule Schedule configuration
 	 */
 	protected function calculateNextRun(array $schedule): ?int
 	{
@@ -177,6 +187,8 @@ class Scheduler
 
 	/**
 	 * Check if overlap prevention is enabled for a schedule
+	 *
+	 * @param array<string, mixed> $schedule Schedule configuration
 	 */
 	protected function shouldPreventOverlap(array $schedule): bool
 	{
@@ -185,6 +197,8 @@ class Scheduler
 
 	/**
 	 * Check if a scheduled job is currently running
+	 *
+	 * @param array<string, mixed> $schedule Schedule configuration
 	 */
 	protected function isRunning(array $schedule): bool
 	{
@@ -209,6 +223,8 @@ class Scheduler
 
 	/**
 	 * Track a running scheduled job
+	 *
+	 * @param array<string, mixed> $schedule Schedule configuration
 	 */
 	protected function trackRunning(array $schedule, string $jobId): void
 	{

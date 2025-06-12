@@ -13,6 +13,8 @@ class View
 {
 	/**
 	 * Returns the view definition for a tab
+	 *
+	 * @return array<string, mixed>
 	 */
 	public static function tab(string $status = 'all'): array
 	{
@@ -33,6 +35,8 @@ class View
 
 	/**
 	 * Returns all props for the Panel view
+	 *
+	 * @return array<string, mixed>
 	 */
 	public static function props(string $status = 'all'): array
 	{
@@ -91,6 +95,8 @@ class View
 
 	/**
 	 * Get all jobs from all statuses
+	 *
+	 * @return array<array<string, mixed>>
 	 */
 	protected static function getAllJobs(): array
 	{
@@ -107,6 +113,9 @@ class View
 
 	/**
 	 * Filter jobs by time range
+	 *
+	 * @param array<array<string, mixed>> $jobs Job data array
+	 * @return array<array<string, mixed>>
 	 */
 	protected static function filterByTimeRange(array $jobs, string $timeRange): array
 	{
@@ -139,6 +148,9 @@ class View
 
 	/**
 	 * Filter jobs by job type
+	 *
+	 * @param array<array<string, mixed>> $jobs Job data array
+	 * @return array<array<string, mixed>>
 	 */
 	protected static function filterByJobType(array $jobs, string $jobType): array
 	{
@@ -153,6 +165,9 @@ class View
 
 	/**
 	 * Sort jobs
+	 *
+	 * @param array<array<string, mixed>> $jobs Job data array
+	 * @return array<array<string, mixed>>
 	 */
 	protected static function sortJobs(array $jobs, string $sortBy, string $sortOrder): array
 	{
@@ -172,6 +187,9 @@ class View
 
 	/**
 	 * Get unique job types from jobs
+	 *
+	 * @param array<array<string, mixed>> $jobs Job data array
+	 * @return array<array<string, string>>
 	 */
 	protected static function getJobTypes(array $jobs): array
 	{
@@ -196,6 +214,8 @@ class View
 
 	/**
 	 * Get filtered statistics
+	 *
+	 * @return array<string, mixed>
 	 */
 	protected static function getFilteredStats(string $timeRange, string $jobType = ''): array
 	{
