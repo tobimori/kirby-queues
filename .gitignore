@@ -9,3 +9,6 @@ index.dev.mjs
 # files of Composer dependencies that are not needed for the plugin
 /vendor
 i18n.cache
+
+# test artifacts
+/tests/storage

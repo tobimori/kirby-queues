@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:noNamespaceSchemaLocation="./vendor/phpunit/phpunit/phpunit.xsd"
+         bootstrap="tests/bootstrap.php"
+         colors="true"
+         testdox="true"
+         failOnRisky="true"
+         failOnWarning="true"
+         stopOnFailure="false"
+         backupGlobals="false"
+         processIsolation="false"
+>
+    <testsuites>
+        <testsuite name="Kirby Queues Test Suite">
+            <directory>tests</directory>
+        </testsuite>
+    </testsuites>
+    <source>
+        <include>
+            <directory suffix=".php">classes</directory>
+        </include>
+    </source>
+    <php>
+        <env name="KIRBY_TESTING" value="true"/>
+    </php>
+</phpunit>

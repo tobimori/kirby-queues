@@ -5,9 +5,13 @@ on:
   pull_request:
 
 jobs:
-  lint-and-format:
-    name: lint and format
+  test:
+    name: test
     runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        php-version: ["8.3", "8.4"]
 
     steps:
       - name: checkout
@@ -16,8 +20,87 @@ jobs:
       - name: setup php
         uses: shivammathur/setup-php@v2
         with:
-          php-version: "8.3"
-          tools: php-cs-fixer
+          php-version: ${{ matrix.php-version }}
+          extensions: mbstring, xml, ctype, iconv, intl, pdo_sqlite
+          coverage: xdebug
+
+      - name: cache composer dependencies
+        uses: actions/cache@v3
+        with:
+          path: /tmp/composer-cache
+          key: ${{ runner.os }}-${{ matrix.php-version }}-composer-${{ hashFiles('**/composer.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-${{ matrix.php-version }}-composer-
+
+      - name: install dependencies
+        run: composer install --prefer-dist --no-progress
+
+      - name: run tests
+        run: vendor/bin/pest
+
+  static-analysis:
+    name: static analysis
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: checkout
+        uses: actions/checkout@v4
+
+      - name: setup php
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: "8.4"
+          extensions: mbstring, xml, ctype, iconv, intl, pdo_sqlite
+
+      - name: cache composer dependencies
+        uses: actions/cache@v3
+        with:
+          path: /tmp/composer-cache
+          key: ${{ runner.os }}-8.4-composer-${{ hashFiles('**/composer.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-8.4-composer-
+
+      - name: install dependencies
+        run: composer install --prefer-dist --no-progress
+
+      - name: run static analysis
+        run: composer stan
+
+  php-code-style:
+    name: php code style
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: checkout
+        uses: actions/checkout@v4
+
+      - name: setup php
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: "8.4"
+          extensions: mbstring, xml, ctype, iconv, intl
+
+      - name: cache composer dependencies
+        uses: actions/cache@v3
+        with:
+          path: /tmp/composer-cache
+          key: ${{ runner.os }}-8.4-composer-${{ hashFiles('**/composer.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-8.4-composer-
+
+      - name: install dependencies
+        run: composer install --prefer-dist --no-progress
+
+      - name: check code style
+        run: PHP_CS_FIXER_IGNORE_ENV=1 ./vendor/bin/php-cs-fixer fix --dry-run --diff
+
+  js-lint-and-format:
+    name: js lint and format
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: checkout
+        uses: actions/checkout@v4
 
       - name: setup node
         uses: actions/setup-node@v4
@@ -35,6 +118,3 @@ jobs:
 
       - name: check prettier formatting
         run: pnpm exec prettier --check "src/**/*.{js,vue}"
-
-      - name: run php cs fixer
-        run: php-cs-fixer fix --dry-run --diff --verbose
