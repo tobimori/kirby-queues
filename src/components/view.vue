@@ -237,6 +237,20 @@ function onHeader(event) {
 
 	navigate({ sortBy: newSortBy, sortOrder: newSortOrder, page: 1 })
 }
+
+async function openJobDrawer(jobId) {
+	const job = props.jobs.find((j) => j.id === jobId)
+	if (!job) return
+
+	await panel.drawer.open({
+		component: "k-queues-job-drawer",
+		props: {
+			title: job.name || job.type,
+			icon: "list-bullet",
+			job: job
+		}
+	})
+}
 </script>
 
 <template>
@@ -339,7 +353,7 @@ function onHeader(event) {
 				<k-button
 					icon="dots"
 					size="xs"
-					@click="panel.drawer.open('queues/jobs/' + row.id)"
+					@click="openJobDrawer(row.id)"
 				/>
 			</template>
 		</k-table>
