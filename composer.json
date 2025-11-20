@@ -19,7 +19,6 @@
 		"background-tasks",
 		"scheduler"
 	],
-	"minimum-stability": "RC",
 	"require": {
 		"php": "^8.3",
 		"getkirby/composer-installer": "^1.2"
