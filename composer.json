@@ -3,7 +3,7 @@
 	"description": "A comprehensive background job queue system for Kirby CMS with scheduled task support and panel monitoring interface",
 	"license": "MIT",
 	"type": "kirby-plugin",
-	"version": "1.0.0-beta.1",
+	"version": "1.0.0-rc.1",
 	"authors": [
 		{
 			"name": "Tobias Möritz",
