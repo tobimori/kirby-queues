@@ -175,6 +175,9 @@ class Worker
 			// Pass CLI instance to job for output
 			$job->setCli($this->cli);
 
+			// refresh kirby's internal state to see newly created pages/files
+			$this->refreshKirbyState();
+
 			// execute the job
 			$job->handle();
 
@@ -203,6 +206,25 @@ class Worker
 
 			return $this->handleFailedJob($job, $e, $startTime);
 		}
+	}
+
+	/**
+	 * Refresh kirby's internal state
+	 *
+	 * clears PHP's stat cache and resets kirby's cached objects
+	 * to ensure newly created pages/files are visible in long-running workers
+	 */
+	protected function refreshKirbyState(): void
+	{
+		// clear php's filesystem stat cache
+		clearstatcache(true);
+
+		// reset kirby's version cache (content fields)
+		\Kirby\Content\VersionCache::reset();
+
+		// force site object to be recreated on next access
+		// this ensures fresh inventory of pages/files
+		App::instance()->setSite(null);
 	}
 
 	/**
