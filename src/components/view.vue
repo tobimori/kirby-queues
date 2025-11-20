@@ -350,11 +350,7 @@ async function openJobDrawer(jobId) {
 				<span v-else>{{ label }}</span>
 			</template>
 			<template #options="{ row }">
-				<k-button
-					icon="dots"
-					size="xs"
-					@click="openJobDrawer(row.id)"
-				/>
+				<k-button icon="dots" size="xs" @click="openJobDrawer(row.id)" />
 			</template>
 		</k-table>
 
