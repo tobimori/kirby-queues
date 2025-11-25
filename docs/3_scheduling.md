@@ -32,6 +32,8 @@ Queues::schedule('0 2 * * *', ProcessDataJob::class, [
 ]);
 ```
 
+If you want to register schedules based on panel settings or other data, and want to avoid the resource overhead on each request, use the `tobimori.queues.worker:before` hook instead. See [Hooks](4_hooks.md) for more details.
+
 ## Cron Expression Syntax
 
 The scheduler uses standard cron expression syntax with five fields:

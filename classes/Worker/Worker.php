@@ -104,6 +104,11 @@ class Worker
 		$padding->label('Mode')->result($once ? 'Single job' : 'Continuous');
 		$this->cli->br();
 
+		App::instance()->trigger('tobimori.queues.worker:before', [
+			'worker' => $this,
+			'queues' => $queues
+		]);
+
 		while (!$this->shouldStop) {
 			// check scheduled jobs every loop iteration
 			$this->runScheduledJobs();
@@ -143,6 +148,12 @@ class Worker
 			}
 		}
 
+		App::instance()->trigger('tobimori.queues.worker:after', [
+			'worker' => $this,
+			'queues' => $queues,
+			'jobsProcessed' => $this->jobsProcessed
+		]);
+
 		if ($this->cli) {
 			$this->cli->br();
 			$this->cli->bold()->out('✋ Worker stopped');
@@ -159,8 +170,12 @@ class Worker
 
 		$this->output("Job started", 'info');
 
-		// mark job as running (this increments attempts in storage)
 		$this->manager->markRunning($job->id(), $this->workerId);
+
+		App::instance()->trigger('tobimori.queues.job:before', [
+			'job' => $job,
+			'worker' => $this
+		]);
 
 		// Add log entry for job start
 		$this->manager->addJobLog($job->id(), 'info', 'Job started', [
@@ -187,7 +202,6 @@ class Worker
 			// clear timeout
 			$this->clearTimeout($job);
 
-			// mark as completed
 			$this->manager->markCompleted($job->id());
 
 			$result = new JobResult(
@@ -196,6 +210,12 @@ class Worker
 				$startTime,
 				microtime(true)
 			);
+
+			App::instance()->trigger('tobimori.queues.job:after', [
+				'job' => $job,
+				'worker' => $this,
+				'result' => $result
+			]);
 
 			$this->output("Job completed successfully", 'info');
 
@@ -234,15 +254,22 @@ class Worker
 	{
 		$this->output("Job failed: " . $exception->getMessage(), 'error');
 
-		// Add log entry for job failure
 		$this->manager->addJobLog($job->id(), 'error', 'Job failed: ' . $exception->getMessage(), [
 			'exception' => get_class($exception),
 			'file' => $exception->getFile(),
 			'line' => $exception->getLine()
 		]);
 
-		// check if job should be retried
-		if ($job->shouldRetry()) {
+		$willRetry = $job->shouldRetry();
+
+		App::instance()->trigger('tobimori.queues.job:failed', [
+			'job' => $job,
+			'worker' => $this,
+			'exception' => $exception,
+			'willRetry' => $willRetry
+		]);
+
+		if ($willRetry) {
 			$delay = $job->retryBackoff();
 
 			$this->manager->release($job->id(), $delay);
