@@ -50,5 +50,6 @@
 	"queues.notification.jobQueued": "Taak in de wachtrij geplaatst voor nieuwe poging",
 	"queues.notification.jobDeleted": "Taak verwijderd",
 	"queues.notification.failedCleared": "Mislukte taken gewist",
-	"queues.notification.scheduledRemoved": "Geplande taak verwijderd"
+	"queues.notification.scheduledRemoved": "Geplande taak verwijderd",
+	"queues.job.flushCache": "Cache leegmaken"
 }

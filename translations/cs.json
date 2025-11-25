@@ -50,5 +50,6 @@
 	"queues.notification.jobQueued": "Úloha byla zařazena do fronty pro opakování",
 	"queues.notification.jobDeleted": "Úloha smazána",
 	"queues.notification.failedCleared": "Neúspěšné úlohy vyčištěny",
-	"queues.notification.scheduledRemoved": "Naplánovaná úloha odstraněna"
+	"queues.notification.scheduledRemoved": "Naplánovaná úloha odstraněna",
+	"queues.job.flushCache": "Vyčistit mezipaměť"
 }

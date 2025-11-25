@@ -50,5 +50,6 @@
 	"queues.notification.jobQueued": "Tâche mise en file d'attente pour une nouvelle tentative",
 	"queues.notification.jobDeleted": "Tâche supprimée",
 	"queues.notification.failedCleared": "Tâches échouées effacées",
-	"queues.notification.scheduledRemoved": "Tâche programmée supprimée"
+	"queues.notification.scheduledRemoved": "Tâche programmée supprimée",
+	"queues.job.flushCache": "Vider le cache"
 }

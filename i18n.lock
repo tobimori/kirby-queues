@@ -53,3 +53,4 @@ checksums:
     queues.notification.jobDeleted: 346fec85479647709eb2636c5d00e62a
     queues.notification.failedCleared: ef88aa8e822a22e4247f52bb5e0fe119
     queues.notification.scheduledRemoved: f91c49a77daad26742bddfd458ee5763
+    queues.job.flushCache: 3048b24a75cd50e47e8dfc0740e27212

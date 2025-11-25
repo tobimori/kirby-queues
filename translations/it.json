@@ -50,5 +50,6 @@
 	"queues.notification.jobQueued": "Lavoro messo in coda per un nuovo tentativo",
 	"queues.notification.jobDeleted": "Lavoro eliminato",
 	"queues.notification.failedCleared": "Lavori falliti rimossi",
-	"queues.notification.scheduledRemoved": "Lavoro programmato rimosso"
+	"queues.notification.scheduledRemoved": "Lavoro programmato rimosso",
+	"queues.job.flushCache": "Svuota cache"
 }
