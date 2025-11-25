@@ -50,5 +50,6 @@
 	"queues.notification.jobQueued": "Aufgabe wurde zur Wiederholung eingereiht",
 	"queues.notification.jobDeleted": "Aufgabe gelöscht",
 	"queues.notification.failedCleared": "Fehlgeschlagene Aufgaben gelöscht",
-	"queues.notification.scheduledRemoved": "Geplante Aufgabe entfernt"
+	"queues.notification.scheduledRemoved": "Geplante Aufgabe entfernt",
+	"queues.job.flushCache": "Cache leeren"
 }

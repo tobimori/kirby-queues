@@ -2,6 +2,7 @@
 
 use Kirby\Cms\App;
 use Kirby\Data\Json;
+use tobimori\Queues\Jobs\FlushCacheJob;
 use tobimori\Queues\Queues;
 
 @include_once __DIR__ . '/vendor/autoload.php';
@@ -67,8 +68,8 @@ App::plugin('tobimori/queues', [
 
 	'hooks' => [
 		'system.loadPlugins:after' => function () {
-			// initialize queue manager
 			Queues::init();
+			Queues::register(FlushCacheJob::class);
 		}
 	]
 ]);

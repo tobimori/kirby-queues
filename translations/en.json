@@ -50,5 +50,6 @@
 	"queues.notification.jobQueued": "Job queued for retry",
 	"queues.notification.jobDeleted": "Job deleted",
 	"queues.notification.failedCleared": "Failed jobs cleared",
-	"queues.notification.scheduledRemoved": "Scheduled job removed"
+	"queues.notification.scheduledRemoved": "Scheduled job removed",
+	"queues.job.flushCache": "Flush Cache"
 }
