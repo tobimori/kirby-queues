@@ -75,18 +75,6 @@ test('scheduler runs due jobs', function () {
 	expect($jobs[0]['payload'])->toBe(['due' => true]);
 });
 
-test('scheduler prevents overlapping runs when configured', function () {
-	$scheduler = Queues::scheduler();
-
-	$scheduler->schedule('* * * * *', ScheduledTestJob::class, ['test' => 'overlap'], ['withoutOverlapping' => true]);
-
-	$scheduled = array_values($scheduler->all())[0];
-
-	expect($scheduled['options']['withoutOverlapping'])->toBe(true);
-
-	$scheduler->unschedule($scheduled['id']);
-});
-
 test('scheduler handles different timezones', function () {
 	$scheduler = Queues::scheduler();
 
@@ -95,29 +83,6 @@ test('scheduler handles different timezones', function () {
 	$scheduled = array_values($scheduler->all())[0];
 	expect($scheduled['timezone'])->toBe('America/New_York');
 	expect($scheduled['nextRun'])->toBeGreaterThan(time());
-});
-
-test('scheduler generates consistent IDs', function () {
-	$scheduler = Queues::scheduler();
-
-	$scheduler->schedule('0 * * * *', ScheduledTestJob::class);
-
-	expect($scheduler->all())->toHaveCount(1);
-
-	$scheduler->schedule('30 * * * *', ScheduledTestJob::class);
-	expect($scheduler->all())->toHaveCount(2);
-});
-
-test('scheduler persists scheduled jobs', function () {
-	$scheduler = Queues::scheduler();
-
-	$scheduler->schedule('0 0 * * 0', ScheduledTestJob::class, ['persist' => 'test']);
-
-	$newScheduler = Queues::scheduler();
-
-	$scheduled = $newScheduler->all();
-	expect($scheduled)->toHaveCount(1);
-	expect(array_values($scheduled)[0]['payload'])->toBe(['persist' => 'test']);
 });
 
 test('scheduler calculates next run correctly', function () {

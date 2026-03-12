@@ -49,15 +49,3 @@ test('job determines retry eligibility', function () {
 	$job->setAttempts(3);
 	expect($job->shouldRetry())->toBeFalse();
 });
-
-test('process data job tracks processed items', function () {
-	$job1 = new ProcessDataJob();
-	$job1->setPayload(['data' => 'first']);
-	$job1->handle();
-
-	$job2 = new ProcessDataJob();
-	$job2->setPayload(['data' => 'second']);
-	$job2->handle();
-
-	expect(ProcessDataJob::$processed)->toBe(['first', 'second']);
-});

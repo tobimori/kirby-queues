@@ -362,6 +362,34 @@ class CacheStorage implements StorageInterface
 		}
 	}
 
+	/** @inheritDoc */
+	public function appendBatchPayload(string $batchKey, array $payload): ?string
+	{
+		$key = "{$this->prefix}.batch.{$batchKey}";
+		$batch = $this->cache->get($key) ?? ['jobId' => null, 'payloads' => []];
+		$batch['payloads'][] = $payload;
+		$this->cache->set($key, $batch);
+		return $batch['jobId'];
+	}
+
+	/** @inheritDoc */
+	public function setBatchJobId(string $batchKey, string $jobId): void
+	{
+		$key = "{$this->prefix}.batch.{$batchKey}";
+		$batch = $this->cache->get($key) ?? ['jobId' => null, 'payloads' => []];
+		$batch['jobId'] = $jobId;
+		$this->cache->set($key, $batch);
+	}
+
+	/** @inheritDoc */
+	public function flushBatchPayloads(string $batchKey): array
+	{
+		$key = "{$this->prefix}.batch.{$batchKey}";
+		$batch = $this->cache->get($key) ?? ['jobId' => null, 'payloads' => []];
+		$this->cache->remove($key);
+		return $batch['payloads'];
+	}
+
 	/**
 	 * Get cache key for job
 	 *

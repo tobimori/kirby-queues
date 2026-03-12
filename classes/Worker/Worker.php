@@ -5,6 +5,7 @@ namespace tobimori\Queues\Worker;
 use Kirby\CLI\CLI;
 use Kirby\Cms\App;
 use Kirby\Toolkit\Str;
+use tobimori\Queues\BatchJob;
 use tobimori\Queues\Job;
 use tobimori\Queues\JobResult;
 use tobimori\Queues\JobStatus;
@@ -192,6 +193,14 @@ class Worker
 
 			// refresh kirby's internal state to see newly created pages/files
 			$this->refreshKirbyState();
+
+			if ($job instanceof BatchJob) {
+				$payloads = $this->manager->storage()->flushBatchPayloads($job->batchKey());
+				if (!empty($payloads)) {
+					$job->setPayload($payloads);
+					$this->manager->storage()->update($job->id(), ['payload' => $payloads]);
+				}
+			}
 
 			// execute the job
 			$job->handle();

@@ -11,6 +11,7 @@ require_once __DIR__ . '/Jobs/TestJob.php';
 require_once __DIR__ . '/Jobs/FailingTestJob.php';
 require_once __DIR__ . '/Jobs/ProcessDataJob.php';
 require_once __DIR__ . '/Jobs/ScheduledTestJob.php';
+require_once __DIR__ . '/Jobs/BatchTestJob.php';
 
 require_once __DIR__ . '/../index.php';
 
@@ -26,5 +27,6 @@ $app = new App([
 	\tobimori\Queues\Tests\Jobs\TestJob::class,
 	\tobimori\Queues\Tests\Jobs\FailingTestJob::class,
 	\tobimori\Queues\Tests\Jobs\ProcessDataJob::class,
-	\tobimori\Queues\Tests\Jobs\ScheduledTestJob::class
+	\tobimori\Queues\Tests\Jobs\ScheduledTestJob::class,
+	\tobimori\Queues\Tests\Jobs\BatchTestJob::class
 );

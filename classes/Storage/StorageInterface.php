@@ -110,4 +110,23 @@ interface StorageInterface
 	 * Used when a job needs to be retried after failure
 	 */
 	public function release(string $id, int $delay = 0): void;
+
+	/**
+	 * Append a payload to the batch accumulator and return the existing trigger job ID
+	 *
+	 * @param array<string, mixed> $payload
+	 */
+	public function appendBatchPayload(string $batchKey, array $payload): ?string;
+
+	/**
+	 * Store the trigger job ID for a batch
+	 */
+	public function setBatchJobId(string $batchKey, string $jobId): void;
+
+	/**
+	 * Flush and return all accumulated batch payloads, clearing the batch state
+	 *
+	 * @return array<int, array<string, mixed>>
+	 */
+	public function flushBatchPayloads(string $batchKey): array;
 }

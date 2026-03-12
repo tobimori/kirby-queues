@@ -45,28 +45,37 @@ class Manager
 	/**
 	 * Push a job to the queue
 	 *
+	 * For BatchJob instances, payloads are accumulated and a single
+	 * delayed trigger job is created per batch window.
+	 *
 	 * @param array<string, mixed> $payload Job payload data
 	 * @throws InvalidArgumentException
 	 */
 	public function push(string|Job $job, array $payload = [], ?string $queue = null): string
 	{
 		$job = $this->prepareJob($job, $payload);
-		$jobId = $this->generateJobId();
-		$job->setId($jobId);
 
-		// determine queue
-		$queue = $queue ?? $job->options()['queue'] ?? $this->defaultQueue();
+		if ($job instanceof BatchJob) {
+			return $this->pushBatch($job, $queue);
+		}
 
-		// prepare job data for storage
-		$jobData = array_merge($job->toArray(), [
-			'id' => $jobId,
-			'queue' => $queue,
-			'attempts' => 0,  // Will be incremented to 1 when job starts
-			'available_at' => time()
-		]);
+		return $this->storeJob($job, $queue);
+	}
 
-		// store job
-		$this->storage->push($queue, $jobData);
+	/**
+	 * Push a batch job — accumulates payload and creates a delayed trigger
+	 */
+	protected function pushBatch(BatchJob $job, ?string $queue = null): string
+	{
+		$batchKey = $job->batchKey();
+		$existingJobId = $this->storage->appendBatchPayload($batchKey, $job->payload());
+
+		if ($existingJobId !== null) {
+			return $existingJobId;
+		}
+
+		$jobId = $this->storeJob($job, $queue, $job->batchWindow());
+		$this->storage->setBatchJobId($batchKey, $jobId);
 
 		return $jobId;
 	}
@@ -80,24 +89,7 @@ class Manager
 	public function later(int $delay, string|Job $job, array $payload = [], ?string $queue = null): string
 	{
 		$job = $this->prepareJob($job, $payload);
-		$jobId = $this->generateJobId();
-		$job->setId($jobId);
-
-		// determine queue
-		$queue = $queue ?? $job->options()['queue'] ?? $this->defaultQueue();
-
-		// prepare job data for storage
-		$jobData = array_merge($job->toArray(), [
-			'id' => $jobId,
-			'queue' => $queue,
-			'attempts' => 0,
-			'available_at' => time() + $delay
-		]);
-
-		// store job
-		$this->storage->push($queue, $jobData);
-
-		return $jobId;
+		return $this->storeJob($job, $queue, $delay);
 	}
 
 	/**
@@ -311,6 +303,30 @@ class Manager
 	protected function defaultQueue(): string
 	{
 		return $this->kirby->option('tobimori.queues.default', 'default');
+	}
+
+	/**
+	 * Assign an ID to a job, build its storage representation, and push it to a queue
+	 *
+	 * @internal
+	 */
+	protected function storeJob(Job $job, ?string $queue = null, int $delay = 0): string
+	{
+		$jobId = $this->generateJobId();
+		$job->setId($jobId);
+
+		$queue = $queue ?? $job->options()['queue'] ?? $this->defaultQueue();
+
+		$jobData = array_merge($job->toArray(), [
+			'id' => $jobId,
+			'queue' => $queue,
+			'attempts' => 0,
+			'available_at' => time() + $delay
+		]);
+
+		$this->storage->push($queue, $jobData);
+
+		return $jobId;
 	}
 
 	/**
