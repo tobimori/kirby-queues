@@ -6,9 +6,12 @@ use tobimori\Queues\BatchJob;
 
 class BatchTestJob extends BatchJob
 {
-	protected int $batchWindow = 5;
-
 	public static array $receivedPayloads = [];
+
+	public function batchWindow(): int
+	{
+		return 5;
+	}
 
 	public function handle(): void
 	{

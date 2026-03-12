@@ -14,16 +14,11 @@ namespace tobimori\Queues;
 abstract class BatchJob extends Job
 {
 	/**
-	 * @var int Batch window in seconds (fixed window from first dispatch)
-	 */
-	protected int $batchWindow = 30;
-
-	/**
 	 * Get the batch window in seconds
 	 */
 	public function batchWindow(): int
 	{
-		return $this->batchWindow;
+		return 30;
 	}
 
 	/**
