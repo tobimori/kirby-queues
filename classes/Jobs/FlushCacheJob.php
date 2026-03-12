@@ -18,7 +18,8 @@ class FlushCacheJob extends Job
 
 	public function name(): string
 	{
-		return I18n::translate('queues.job.flushCache', 'Flush Cache');
+		$name = I18n::translate('queues.job.flushCache');
+		return is_string($name) ? $name : 'Flush Cache';
 	}
 
 	public function handle(): void

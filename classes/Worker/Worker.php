@@ -197,6 +197,7 @@ class Worker
 			if ($job instanceof BatchJob) {
 				$payloads = $this->manager->storage()->flushBatchPayloads($job->batchKey());
 				if (!empty($payloads)) {
+					/** @var array<string, mixed> $payloads */
 					$job->setPayload($payloads);
 					$this->manager->storage()->update($job->id(), ['payload' => $payloads]);
 				}
