@@ -17,14 +17,14 @@ ls vendor/bin/kirby  # Local installation
 
 ### Important: Environment Configuration
 
-By default, the Kirby CLI uses the `_` environment which may not have your production settings. To ensure your workers use the correct environment, you must set the `KIRBY_ENV` environment variable:
+If your production settings depend on the site's hostname, set the [`KIRBY_HOST` environment variable](https://github.com/getkirby/cli#command-environment) to that hostname so your workers load the correct configuration:
 
 ```bash
-export KIRBY_ENV=production
+export KIRBY_HOST=example.com
 kirby queues:work
 ```
 
-For daemon setups (supervisord/systemd), make sure to include the environment configuration in your service definitions.
+Replace `example.com` with your production hostname. For daemon setups (supervisord/systemd), include the same `KIRBY_HOST` setting in your service definitions, as shown below.
 
 ## Running Workers
 
@@ -93,7 +93,7 @@ redirect_stderr=true
 stdout_logfile=/var/log/kirby-queues.log
 stdout_logfile_maxbytes=0  ; Disable log rotation (optional)
 stopwaitsecs=3600
-environment=KIRBY_ENV="production"
+environment=KIRBY_HOST="example.com"
 ```
 
 This configuration:
@@ -130,7 +130,7 @@ Restart=always
 RestartSec=5
 StandardOutput=append:/var/log/kirby-queues.log
 StandardError=append:/var/log/kirby-queues-error.log
-Environment="KIRBY_ENV=production"
+Environment="KIRBY_HOST=example.com"
 # For local installation:
 ExecStart=/path/to/your/site/vendor/bin/kirby queues:work --dir /path/to/your/site
 # For global installation (find path with 'which kirby'):
