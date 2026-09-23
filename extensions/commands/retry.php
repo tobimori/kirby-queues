@@ -12,8 +12,10 @@ return [
 			'defaultValue' => null
 		]
 	],
-	'command' => function (CLI $cli, ?string $id = null) {
-		if ($id === null) {
+	'command' => function (CLI $cli) {
+		$id = $cli->arg('id');
+
+		if ($id === null || $id === '') {
 			$cli->br();
 			$cli->red()->bold()->out('✗ Missing argument');
 			$cli->out('Please provide a job ID or "all" to retry all failed jobs');
